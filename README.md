@@ -1,4 +1,5 @@
-# System Prompt Security Benchmark
+
+<img width="400" height="" alt="system prom" src="https://github.com/user-attachments/assets/9b2faaec-b4e8-4b1e-b1d4-50e8f695f739" />
 
 Test your LLM system prompts against 287 real-world attack vectors including prompt injection, jailbreaks, and data leaks.
 
@@ -6,9 +7,7 @@ Test your LLM system prompts against 287 real-world attack vectors including pro
 
 - **9 Production-Ready Prompts** - Customer support, sales, HR, legal, finance, code review, and more
 - **287 Attack Vectors** - Covering all 2024-2025 jailbreak techniques
-- **5 LLM Providers** - OpenAI, Anthropic, Grok, Gemini, Ollama
 - **Automated Testing** - Ollama-based judge for pass/fail decisions
-- **Manual Override** - Click to mark any test as PASS/FAIL
 - **Professional Reports** - Export to JSON or PDF with graphs
   
 <img width="1286" height="854" alt="Screenshot 2025-11-20 at 16 47 27" src="https://github.com/user-attachments/assets/9de9e8a9-c05d-4cee-963d-990f722f2ffa" />
