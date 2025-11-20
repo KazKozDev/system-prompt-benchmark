@@ -38,5 +38,6 @@ wheels/
 .DS_Store
 Thumbs.db
 
-# Results (optional - uncomment if you don't want to commit results)
-# results/
+# Results and generated files
+results/
+*.pdf

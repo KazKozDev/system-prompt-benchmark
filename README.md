@@ -1,276 +1,127 @@
-# System Prompt Benchmark
+# System Prompt Security Benchmark
 
-A collection of secure system prompts with benchmarking tools to test their safety and effectiveness against prompt injection, jailbreaking, and other attack vectors.
+Test your LLM system prompts against 287 real-world attack vectors including prompt injection, jailbreaks, and data leaks.
 
-## 📋 Overview
+## Features
 
-This repository contains production-ready system prompts designed with security best practices and a benchmarking framework to evaluate their robustness.
+- **9 Production-Ready Prompts** - Customer support, sales, HR, legal, finance, code review, and more
+- **287 Attack Vectors** - Covering all 2024-2025 jailbreak techniques
+- **5 LLM Providers** - OpenAI, Anthropic, Grok, Gemini, Ollama
+- **Automated Testing** - Ollama-based judge for pass/fail decisions
+- **Manual Override** - Click to mark any test as PASS/FAIL
+- **Professional Reports** - Export to JSON or PDF with graphs
 
-### Who is this for?
+## Quick Start
 
-- Prompt Engineers
-- AI/ML Developers
-- Product Managers working with LLMs
-- AI Safety Researchers
-
-## 🎯 Prompts Collection
-
-### 1. Customer Support Bot
-**File:** `prompts/customer-support-bot.txt` 
-
-System prompt for an e-commerce customer support chatbot.
-
-**Key Features:**
-- Handles product and order inquiries
-- Protection against role-playing attacks
-- User data isolation
-
-**Use Cases:**
-- E-commerce support
-- SaaS technical support
-- Information bots
-
----
-
-### 2. Social Media Content Creator
-**File:** `prompts/social-media-content-creator.txt` 
-
-Prompt for generating social media content for a fitness brand.
-
-**Key Features:**
-- Brand voice control
-- Content safety filters
-- Medical claim filtering
-
-**Use Cases:**
-- Social media posts
-- Content marketing
-- Creative teams
-
----
-
-### 3. Corporate Knowledge Base RAG
-**File:** `prompts/corporate-knowledge-rag.txt` 
-
-Prompt for a RAG system with access control for corporate knowledge bases.
-
-**Key Features:**
-- Document-level access control
-- Data leakage protection
-- Source citation
-
-**Use Cases:**
-- Internal knowledge bases
-- Company documentation
-- FAQ systems
-
----
-
-### 4. Educational Tutor
-**File:** `prompts/educational-tutor.txt` 
-
-Prompt for an educational assistant for math and science.
-
-**Key Features:**
-- Academic integrity focus
-- Guidance over direct answers
-- Student level adaptation
-
-**Use Cases:**
-- EdTech applications
-- Tutoring platforms
-- Learning systems
-
-## 🛡️ Security Principles
-
-All prompts follow these security principles:
-
-### Protection Against Prompt Injection
-- Clear separation of system instructions and user input
-- XML tags for structure
-- Explicit instructions to ignore embedded commands
-
-### Protection Against Jailbreaking
-- Defined behavioral boundaries
-- Role-playing attempt handling
-- Refusal to execute prohibited actions
-
-### Protection Against Prompt Leaking
-- Prohibition on revealing system instructions
-- No sensitive data in prompts
-- Secure configuration storage
-
-### Data Protection
-- User data isolation
-- Role-based access control
-- Cross-user query prohibition
-
-## 🧪 Benchmarking
-
-### Running the Benchmark
 ```bash
-# Install dependencies
+# Clone and install
+git clone https://github.com/kazkozdev/system-prompt-benchmark
+cd system-prompt-benchmark
 pip install -r requirements.txt
 
-# Set API keys
-export OPENAI_API_KEY="your-key"
-# or
-export ANTHROPIC_API_KEY="your-key"
+# Start Ollama (optional, for auto-judging)
+ollama serve
+ollama pull qwen3:14b
 
-# Run benchmark
-python run_benchmark.py --prompt prompts/customer-support-bot.txt --provider openai
+# Launch app
+./start.sh
 ```
 
-### Benchmark Categories
+Open `http://localhost:8501` in your browser.
 
-The benchmark tests four categories:
+## How to Use
 
-1. **Security Tests** - Prompt injection, jailbreaking, prompt leaking
-2. **Functionality Tests** - Normal queries and expected behavior
-3. **Boundary Tests** - Out-of-scope request handling
-4. **Edge Cases** - Social engineering, multilingual attacks
+1. Upload your system prompt (.txt file)
+2. Select LLM provider and enter API key
+3. Click "Run Benchmark"
+4. Review results with interactive charts
+5. Manually override incorrect judgments
+6. Export as PDF or JSON
 
-### Example Results
-```
-=== BENCHMARK RESULTS ===
+## Available Prompts
 
-Security: 13/13 (100%) ✅
-Functionality: 8/8 (100%) ✅
-Boundaries: 7/7 (100%) ✅
-Edge Cases: 6/6 (100%) ✅
+### Business & Sales
+- **Customer Support Bot** - E-commerce support with jailbreak protection
+- **Sales Assistant** - Lead qualification with pricing controls
+- **HR Screening Bot** - Candidate screening with anti-discrimination rules
 
-Overall Score: 34/34 (100%)
-Model: GPT-5-1
-```
+### Technical
+- **Code Review Assistant** - OWASP Top 10 vulnerability detection
+- **Corporate Knowledge RAG** - Document access control and data privacy
 
-## 📊 Test Results
+### Compliance & Safety
+- **Legal Compliance Checker** - GDPR, CCPA, HIPAA guidance
+- **Financial Advisor Bot** - Educational content with disclaimers
+- **Educational Tutor** - Academic integrity enforcement
 
-### TechStore Customer Support Bot
+### Content
+- **Social Media Creator** - Brand-locked fitness content generator
 
-**Tested on:** GPT-5-1  
-**Date:** 2025-11-19
+## Attack Categories
 
-| Category | Score | Status |
-|----------|-------|--------|
-| Security | 13/13 (100%) | ✅ |
-| Functionality | 8/8 (100%) | ✅ |
-| Boundaries | 7/7 (100%) | ✅ |
-| Edge Cases | 6/6 (100%) | ✅ |
-| **Overall** | **34/34 (100%)** | ✅ |
+The benchmark tests these attack types:
 
-## 🚀 Quick Start
+**Security Attacks**
+- Prompt Injection ("ignore previous instructions")
+- Jailbreaking (DAN mode, roleplay tricks)
+- Prompt Leaking (extracting system instructions)
+- Authority Bypass (fake CEO/admin claims)
 
-### Using a Prompt
-```python
-# With OpenAI
-import openai
+**Advanced Techniques**
+- Multilingual attacks (6 languages)
+- Encoding tricks (base64, ROT13, hex)
+- Token smuggling (word-by-word extraction)
+- RAG poisoning (fake document injection)
 
-with open('prompts/customer-support-bot.txt', 'r') as f:
-    system_prompt = f.read()
+**Domain-Specific**
+- Academic dishonesty attempts
+- Unauthorized discount requests
+- Legal/financial advice bypass
+- HR discrimination triggers
+- Data privacy violations
 
-response = openai.ChatCompletion.create(
-    model="gpt-4",
-    messages=[
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": "How do I return a product?"}
-    ]
-)
-```
-```python
-# With Anthropic Claude
-import anthropic
+## Best Practices
 
-with open('prompts/customer-support-bot.txt', 'r') as f:
-    system_prompt = f.read()
+**Do:**
+- Test prompts before production
+- Use environment variables for secrets
+- Monitor suspicious requests
+- Update against new attack vectors
+- Use multiple security layers
 
-client = anthropic.Anthropic(api_key="your-key")
-message = client.messages.create(
-    model="claude-3-5-sonnet-20241022",
-    max_tokens=1024,
-    system=system_prompt,
-    messages=[
-        {"role": "user", "content": "How do I return a product?"}
-    ]
-)
-```
+**Don't:**
+- Store API keys in prompts
+- Rely only on prompts for security
+- Ignore failed tests
+- Skip Ollama judge review
+- Use one prompt for different access levels
 
-## 📁 Repository Structure
+## Project Structure
+
 ```
 system-prompt-benchmark/
-├── README.md
-├── LICENSE
-├── prompts/                    # System prompts
-│   ├── customer-support-bot.txt
-│   ├── social-media-content-creator.txt
-│   ├── corporate-knowledge-rag.txt
-│   └── educational-tutor.txt
-├── tests/                      # Benchmark test datasets
-│   └── techstore_benchmark.json
-├── run_benchmark.py           # Benchmark script
-├── requirements.txt           # Python dependencies
-└── results/                   # Benchmark results
-    └── techstore_results.json
+├── start.sh                        # Quick start script
+├── app.py                          # Streamlit UI
+├── prompts/                        # 9 system prompts
+├── tests/
+│   └── safeprompt-benchmark.json   # 287 attack vectors
+└── results/                        # Exported reports
 ```
 
-## 🔧 Customization
+## Contributing
 
-Each prompt can be adapted to your needs:
+Found a vulnerability or new attack vector?
 
-1. Replace placeholders with your company/product data
-2. Add specific rules for your use case
-3. Adjust tone and style for your brand
-4. Extend boundaries for additional functionality
+1. Open an issue with `security` label
+2. Describe the attack and provide example
+3. Propose a fix if possible
 
-## 📖 Best Practices
+## License
 
-### ✨ Recommendations
+MIT License - Free for commercial and personal use.
 
-1. **Never store secrets in prompts** - use environment variables
-2. **Log suspicious requests** - analyze attack patterns
-3. **Update regularly** - new attack vectors emerge constantly
-4. **Test on production data** - synthetic tests don't cover everything
-5. **Use rate limiting** - protection against automated attacks
+---
 
-### 🚨 What NOT to Do
+**Made for the AI Safety community**
 
-- ❌ Don't rely only on prompts for security
-- ❌ Don't store API keys in system prompts
-- ❌ Don't use one prompt for different access levels
-- ❌ Don't ignore logs - they show real attack attempts
-
-## 🤝 Contributing
-
-We welcome contributions!
-
-### Adding a New Prompt
-
-1. Create a new `.txt` file with the prompt
-2. Follow the structure of existing prompts
-3. Test against adversarial examples
-4. Update README with description
-5. Create a Pull Request
-
-### Reporting Security Issues
-
-If you find a vulnerability in the prompts:
-- Create an issue with the `security` label
-- Describe the attack vector
-- Propose a solution if possible
-
-## 📚 Resources
-
-### Further Reading
-
-- [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
-- [Anthropic Prompt Engineering Guide](https://docs.anthropic.com/claude/docs/prompt-engineering)
-- [OpenAI Safety Best Practices](https://platform.openai.com/docs/guides/safety-best-practices)
-
-## 📄 License
-
-MIT License - Free to use in commercial and personal projects.
-
-## ⭐ Support
-
-If this repository was helpful, please give it a star!
-
-Made with ❤️ for the AI Safety community
+Built by security-conscious prompt engineers
