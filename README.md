@@ -10,6 +10,8 @@ Test your LLM system prompts against 287 real-world attack vectors including pro
 - **Automated Testing** - Ollama-based judge for pass/fail decisions
 - **Manual Override** - Click to mark any test as PASS/FAIL
 - **Professional Reports** - Export to JSON or PDF with graphs
+  
+<img width="1286" height="854" alt="Screenshot 2025-11-20 at 16 47 27" src="https://github.com/user-attachments/assets/9de9e8a9-c05d-4cee-963d-990f722f2ffa" />
 
 ## Quick Start
 
