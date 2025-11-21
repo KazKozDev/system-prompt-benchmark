@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # System Prompt Security Benchmark - Startup Script
-# This script starts the Streamlit application and opens it in your browser
+# This script starts the Universal Benchmark application
 
 set -e  # Exit on error
 
 echo "========================================="
 echo "System Prompt Security Benchmark"
+echo "Universal Edition"
 echo "========================================="
 echo ""
 
@@ -32,7 +33,7 @@ if ! curl -s http://localhost:11434/api/tags &> /dev/null; then
     echo "To start Ollama:"
     echo "  1. Install from https://ollama.ai/"
     echo "  2. Run: ollama serve"
-    echo "  3. Run: ollama pull llama3.1"
+    echo "  3. Run: ollama pull qwen3:14b"
     echo ""
     read -p "Continue without Ollama? (y/n) " -n 1 -r
     echo ""
@@ -41,7 +42,7 @@ if ! curl -s http://localhost:11434/api/tags &> /dev/null; then
     fi
 fi
 
-echo "Starting Streamlit application..."
+echo "Starting Universal Benchmark application..."
 echo ""
 echo "The application will open in your browser at:"
 echo "  http://localhost:8501"
@@ -50,4 +51,4 @@ echo "Press Ctrl+C to stop the server"
 echo ""
 
 # Start Streamlit with browser auto-open
-streamlit run app.py --server.port=8501 --server.address=localhost --browser.gatherUsageStats=false
+python3 -m streamlit run app.py --server.port=8501 --server.address=localhost --browser.gatherUsageStats=false

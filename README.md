@@ -1,15 +1,21 @@
 
 <img width="400" height="" alt="system prom" src="https://github.com/user-attachments/assets/9b2faaec-b4e8-4b1e-b1d4-50e8f695f739" />
 
+<p align="center">
 Test your LLM system prompts against 287 real-world attack vectors including prompt injection, jailbreaks, and data leaks.
+</p>
 
 ## Features
 
 - **9 Production-Ready Prompts** - Customer support, sales, HR, legal, finance, code review, and more
 - **287 Attack Vectors** - Covering all 2024-2025 jailbreak techniques
+- **5 LLM Providers** - OpenAI, Anthropic, Grok, Gemini, Ollama
+- **Prompt Analysis** - AI-powered analysis of your prompt's role, capabilities, and boundaries
 - **Automated Testing** - Ollama-based judge for pass/fail decisions
+- **Version Comparison** - Track and compare results across multiple test runs
+- **Manual Override** - Click to mark any test as PASS/FAIL
 - **Professional Reports** - Export to JSON or PDF with graphs
-  
+
 <img width="1286" height="854" alt="Screenshot 2025-11-20 at 16 47 27" src="https://github.com/user-attachments/assets/9de9e8a9-c05d-4cee-963d-990f722f2ffa" />
 
 ## Quick Start
@@ -20,9 +26,9 @@ git clone https://github.com/kazkozdev/system-prompt-benchmark
 cd system-prompt-benchmark
 pip install -r requirements.txt
 
-# Start Ollama (optional, for auto-judging)
+# Start Ollama (required for automated scoring)
 ollama serve
-ollama pull qwen3:14b
+ollama pull qwen3:14b  # LLM judge for evaluating responses
 
 # Launch app
 ./start.sh
@@ -30,14 +36,16 @@ ollama pull qwen3:14b
 
 Open `http://localhost:8501` in your browser.
 
+**Note:** Ollama with `qwen3:14b` is used as an LLM judge to automatically score test responses. Without it, you'll need to manually review each result. You can use other Ollama models, but `qwen3:14b` is recommended for accurate scoring.
+
 ## How to Use
 
-1. Upload your system prompt (.txt file)
-2. Select LLM provider and enter API key
-3. Click "Run Benchmark"
-4. Review results with interactive charts
-5. Manually override incorrect judgments
-6. Export as PDF or JSON
+1. **Upload or select a prompt** - Upload .txt file, paste text, or choose an example
+2. **Configure LLM provider** - Select OpenAI, Anthropic, Grok, Gemini, or Ollama
+3. **Analyze Prompt** (optional) - Get AI insights on your prompt's structure and security
+4. **Run Benchmark** - Test against 287 attack vectors with automated scoring
+5. **Compare Versions** - Track improvements across multiple test runs
+6. **Export results** - Download as JSON or PDF report
 
 ## Available Prompts
 
@@ -101,12 +109,23 @@ The benchmark tests these attack types:
 
 ```
 system-prompt-benchmark/
+├── app.py                          # Main Streamlit application
 ├── start.sh                        # Quick start script
-├── app.py                          # Streamlit UI
-├── prompts/                        # 9 system prompts
-├── tests/
-│   └── safeprompt-benchmark.json   # 287 attack vectors
-└── results/                        # Exported reports
+├── src/                            # Source code
+│   ├── core/                       # Core benchmark logic
+│   │   ├── benchmark_categories.py
+│   │   ├── run_universal_benchmark.py
+│   │   └── universal_judge.py
+│   ├── providers/                  # LLM provider integrations
+│   │   └── run_benchmark.py
+│   ├── metrics/                    # Scoring and analysis
+│   │   ├── semantic_metrics.py
+│   │   └── degradation_metrics.py
+│   └── utils/                      # Helper utilities
+│       ├── prompt_analyzer.py
+│       └── pdf_report.py
+├── prompts/                        # 9 example prompts
+└── tests/                          # 287 attack test cases
 ```
 
 ## Contributing
