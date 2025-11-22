@@ -2,7 +2,7 @@
   <img width="350" alt="logo" src="https://github.com/user-attachments/assets/11c6d736-7d23-46d2-a9b9-616396d7e8ed" />
 </p>
 
-Test your LLM system prompts against 287 real-world attack vectors including prompt injection, jailbreaks, and data leaks.
+Test your LLM system prompts against 287 real-world attack vectors including prompt injection, jailbreaks, and data leaks. Automated security testing for production AI systems.
 </p>
 
 ## Features
