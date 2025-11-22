@@ -140,10 +140,13 @@ Found a vulnerability or new attack vector?
 
 ## License
 
-MIT License - Free for commercial and personal use.
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Contact
+
+- **GitHub Issues**: [Project Issues](https://github.com/KazKozDev/system-prompt-benchmark/issues)
+- **LinkedIn**: [Artem KK](https://www.linkedin.com/in/kazkozdev/)
 
 ---
 
-**Made for the AI Safety community**
-
-Built by security-conscious prompt engineers
+⭐ If you find this project helpful, please give it a star
