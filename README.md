@@ -1,7 +1,7 @@
-
-<img width="400" height="" alt="system prom" src="https://github.com/user-attachments/assets/9b2faaec-b4e8-4b1e-b1d4-50e8f695f739" />
-
 <p align="center">
+  <img width="350" alt="logo" src="https://github.com/user-attachments/assets/11c6d736-7d23-46d2-a9b9-616396d7e8ed" />
+</p>
+
 Test your LLM system prompts against 287 real-world attack vectors including prompt injection, jailbreaks, and data leaks.
 </p>
 
