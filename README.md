@@ -3,6 +3,13 @@
 </p>
 
 <h3 align="center">Security testing for production LLM applications</h3>
+<p align="center">
+  <img src="https://img.shields.io/badge/Attack_Vectors-287-0D47A1?style=for-the-badge" alt="Vectors">
+  <img src="https://img.shields.io/badge/Prompt_Injection-Tested-1976D2?style=for-the-badge" alt="Injection">
+  <img src="https://img.shields.io/badge/Jailbreak-Detection-2196F3?style=for-the-badge" alt="Jailbreak">
+  <img src="https://img.shields.io/badge/Data_Leaks-Prevention-64B5F6?style=for-the-badge" alt="Leaks">
+
+</p>
 
 Test your LLM system prompts against 287 real-world attack vectors including prompt injection, jailbreaks, and data leaks. Automated security testing for production AI systems.
 </p>
