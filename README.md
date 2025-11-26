@@ -136,14 +136,6 @@ system-prompt-benchmark/
 └── tests/                          # 287 attack test cases
 ```
 
-## Contributing
-
-Found a vulnerability or new attack vector?
-
-1. Open an issue with `security` label
-2. Describe the attack and provide example
-3. Propose a fix if possible
-
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
