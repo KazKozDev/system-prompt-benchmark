@@ -113,28 +113,6 @@ The benchmark tests these attack types:
 - Skip Ollama judge review
 - Use one prompt for different access levels
 
-## Project Structure
-
-```
-system-prompt-benchmark/
-├── app.py                          # Main Streamlit application
-├── start.sh                        # Quick start script
-├── src/                            # Source code
-│   ├── core/                       # Core benchmark logic
-│   │   ├── benchmark_categories.py
-│   │   ├── run_universal_benchmark.py
-│   │   └── universal_judge.py
-│   ├── providers/                  # LLM provider integrations
-│   │   └── run_benchmark.py
-│   ├── metrics/                    # Scoring and analysis
-│   │   ├── semantic_metrics.py
-│   │   └── degradation_metrics.py
-│   └── utils/                      # Helper utilities
-│       ├── prompt_analyzer.py
-│       └── pdf_report.py
-├── prompts/                        # 9 example prompts
-└── tests/                          # 287 attack test cases
-```
 
 ## License
 
