@@ -8,6 +8,8 @@ Automated red-team evaluation of LLM system prompts across 12 security and behav
   <img src="https://img.shields.io/badge/python-3.12-blue" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/providers-15+-informational" alt="Providers">
+  <img src="https://github.com/KazKozDev/system-prompt-benchmark/actions/workflows/ci.yml/badge.svg" alt="Build">
+  <img src="https://img.shields.io/github/v/release/KazKozDev/system-prompt-benchmark" alt="Release">
 </p>
 
 ## Highlights
