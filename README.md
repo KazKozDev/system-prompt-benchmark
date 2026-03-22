@@ -4,10 +4,11 @@
 
 Automated red-team evaluation of LLM system prompts across 12 security and behavioral categories.
 
-![Python](https://img.shields.io/badge/python-3.12-blue)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Providers](https://img.shields.io/badge/providers-15+-informational)
-![Attack Vectors](https://img.shields.io/badge/attack_vectors-287-red)
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.12-blue" alt="Python">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
+  <img src="https://img.shields.io/badge/providers-15+-informational" alt="Providers">
+</p>
 
 ## Highlights
 
