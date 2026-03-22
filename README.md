@@ -4,8 +4,6 @@
 
 Automated red-team evaluation of LLM system prompts across 12 security and behavioral categories.
 
-![License](https://img.shields.io/badge/license-MIT-blue)
-
 ## Highlights
 
 - 12 evaluation categories: jailbreaks, injections, security, ethics, and more
@@ -43,13 +41,8 @@ System prompts are the primary control surface for LLM-based products — but mo
 
 ```mermaid
 graph LR
-    A[System Prompt + Dataset] --> B[CLI / UI / API]
-    B --> C[Benchmark Engine]
-    C --> D[Provider Layer]
-
-    D --> E[LLM Response]
-    E --> F[Judge Stack]
-    F --> G[Score + Report]
+    A[System Prompt + Dataset] --> B[CLI / UI / API] --> C[Benchmark Engine] --> D[Provider Layer]
+    D --> E[LLM Response] --> F[Judge Stack] --> G[Score + Report]
 ```
 
 Components:
@@ -78,7 +71,7 @@ Flow: `prompt file + test dataset → provider call → judge evaluation → cat
 
 ```bash
 # 1. Clone and install
-git clone <repo-url>
+git clone https://github.com/KazKozDev/system-prompt-benchmark.git
 cd system-prompt-benchmark
 pip install -r requirements.txt
 
@@ -91,7 +84,7 @@ python spb.py run \
   --prompt prompts/customer-support-bot.txt \
   --tests tests/safeprompt-benchmark-v2.json \
   --provider openai \
-  --model gpt-4o
+  --model gpt-5.4
 ```
 
 Docker (with Redis, Prometheus, Grafana):
