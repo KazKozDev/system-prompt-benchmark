@@ -2,11 +2,9 @@
   <img src="logo.png" width="320" alt="System Prompt Benchmark">
 </p>
 
-# System Prompt Benchmark
 
 Automated red-team evaluation of LLM system prompts across 12 security and behavioral categories.
 
-<h3 align="center">Security testing for production LLM applications</h3>
 <p align="center">
   <img src="https://img.shields.io/badge/Attack_Vectors-287-1565C0?style=flat" alt="Vectors">
   <img src="https://img.shields.io/badge/Prompt_Injection-Tested-1976D2?style=flat" alt="Injection">
