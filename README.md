@@ -1,147 +1,211 @@
-
-<img width="400" height="" alt="system prom" src="https://github.com/user-attachments/assets/9b2faaec-b4e8-4b1e-b1d4-50e8f695f739" />
-
 <p align="center">
-Test your LLM system prompts against 287 real-world attack vectors including prompt injection, jailbreaks, and data leaks.
+  <img src="logo.png" width="320" alt="System Prompt Benchmark">
 </p>
+
+# System Prompt Benchmark
+
+Automated red-team evaluation of LLM system prompts across 12 security and behavioral categories.
+
+<h3 align="center">Security testing for production LLM applications</h3>
+<p align="center">
+  <img src="https://img.shields.io/badge/Attack_Vectors-287-1565C0?style=flat" alt="Vectors">
+  <img src="https://img.shields.io/badge/Prompt_Injection-Tested-1976D2?style=flat" alt="Injection">
+  <img src="https://img.shields.io/badge/Jailbreak-Detection-2196F3?style=flat" alt="Jailbreak">
+  <img src="https://img.shields.io/badge/Data_Leaks-Prevention-42A5F5?style=flat" alt="Leaks">
+</p>
+
+## Highlights
+
+- 300-test benchmark covering jailbreaks, prompt leakage, authority bypass, and role drift
+- Multi-turn adaptive attacks driven by a separate red-team LLM
+- Weighted scoring across 12 universal categories with per-category breakdowns
+- Three interfaces: Streamlit UI, CLI, and REST API
+- Plugin SDK for custom providers, transforms, judges, and exporters
+
+## Demo
+
+![Demo](docs/demo.gif)
+
+> No GIF recorded yet. Run `bash start.sh` to see the UI at `http://localhost:8501`.
+
+## Overview
+
+System Prompt Benchmark evaluates how well a system prompt resists adversarial inputs. Paste or upload any system prompt, pick a model, and run up to 300 attack tests. Each response is scored by a configurable judge stack and mapped to 12 universal categories — from jailbreak resistance and prompt leakage to multi-turn consistency. Results are exportable as JSON or PDF.
+
+Built for AI engineers and product teams who ship LLM-powered features and need to verify that system prompts hold up under pressure before deployment.
+
+## Motivation
+
+Existing tools either test generic safety (not prompt-specific security) or require a fixed dataset format tied to one vendor. Prompts that pass informal testing in the playground routinely fail under systematic adversarial pressure — authority escalation, encoding tricks, multi-turn erosion. This tool treats every system prompt as the unit under test, produces reproducible scores, and compares results across prompt versions.
 
 ## Features
 
-- **9 Production-Ready Prompts** - Customer support, sales, HR, legal, finance, code review, and more
-- **287 Attack Vectors** - Covering all 2024-2025 jailbreak techniques
-- **5 LLM Providers** - OpenAI, Anthropic, Grok, Gemini, Ollama
-- **Prompt Analysis** - AI-powered analysis of your prompt's role, capabilities, and boundaries
-- **Automated Testing** - Ollama-based judge for pass/fail decisions
-- **Version Comparison** - Track and compare results across multiple test runs
-- **Manual Override** - Click to mark any test as PASS/FAIL
-- **Professional Reports** - Export to JSON or PDF with graphs
+- Quick / Standard / Full benchmark modes (10 / 100 / 300 tests)
+- 12 weighted evaluation categories: role adherence, instruction following, security, jailbreak resistance, consistency, scope boundaries, graceful degradation, ethics & compliance, constraint following, robustness, multi-turn behavior, edge cases
+- 5 adaptive multi-turn attack strategies: prompt leak escalation, authority escalation, tool hijack escalation, jailbreak escalation, social engineering escalation
+- LLM-adaptive attacker mode using a separate red-team model
+- 15+ supported providers: OpenAI, Anthropic, Gemini, Vertex AI, Azure OpenAI, Bedrock, Cohere, Together, Mistral, OpenRouter, Fireworks, Groq, Grok, Ollama, custom HTTP
+- Pluggable detector stack: pattern detectors, OpenAI Moderation, Perspective API, HarmJudge, external webhook
+- Dataset management: JSON / JSONL / CSV formats, remote catalog sync, preset profiles
+- Version comparison: `spb compare baseline.json candidate.json`
+- Plugin SDK for custom providers, transforms, judges, and exporters
+- REST API with SQLite job store, Redis queue backend, Prometheus metrics
+- PDF report export
 
-<img width="1286" height="854" alt="Screenshot 2025-11-20 at 16 47 27" src="https://github.com/user-attachments/assets/9de9e8a9-c05d-4cee-963d-990f722f2ffa" />
+## Architecture
+
+Components:
+
+- `app.py` — Streamlit UI; sidebar collects system prompt, provider, test mode, dataset, judge config
+- `src/core/run_universal_benchmark.py` — benchmark runner with parallel execution, rate limiting, consistency group scoring
+- `src/core/detectors.py` — pattern detector families (leakage, jailbreak, refusal, toxicity)
+- `src/core/universal_judge.py` — multi-strategy judge: heuristic, LLM, ensemble, consistency
+- `src/providers/run_benchmark.py` — unified LLM provider abstraction (15+ backends)
+- `src/datasets.py` — dataset loading, validation, transforms, remote catalog sync
+- `src/api.py` — FastAPI REST API with job queue, worker backend, webhook delivery
+- `src/cli.py` — full-featured CLI (`run`, `compare`, `summarize`, `validate-dataset`, `convert-dataset`, `sync-packs`, `plugins`, …)
+- `src/metrics/` — formal metrics, semantic similarity, degradation scoring
+- `src/plugins/` — plugin manager and SDK (providers, transforms, judges, exporters)
+
+Flow:
+
+```
+System Prompt + Attack Dataset
+        ↓
+  Provider (LLM call)
+        ↓
+  Detector Stack (patterns + optional external)
+        ↓
+  Judge (heuristic / LLM / ensemble)
+        ↓
+  Category Scoring (12 weighted categories)
+        ↓
+  Report (JSON / PDF / UI)
+```
+
+## Tech Stack
+
+- Python 3.9+
+- Streamlit — web UI
+- FastAPI + Uvicorn — REST API
+- SQLite — job store (API mode)
+- Redis — optional queue backend
+- Plotly / ReportLab — charts and PDF export
+- Ollama — default local judge and attacker model
 
 ## Quick Start
 
 ```bash
-# Clone and install
-git clone https://github.com/kazkozdev/system-prompt-benchmark
+git clone https://github.com/KazKozDev/system-prompt-benchmark
 cd system-prompt-benchmark
 pip install -r requirements.txt
 
-# Start Ollama (required for automated scoring)
-ollama serve
-ollama pull qwen3:14b  # LLM judge for evaluating responses
+# Streamlit UI
+bash start.sh
 
-# Launch app
-./start.sh
+# Or directly
+streamlit run app.py
 ```
 
-Open `http://localhost:8501` in your browser.
+The UI opens at `http://localhost:8501`. Select a system prompt, configure a provider, and click **Start Benchmark**.
 
-**Note:** Ollama with `qwen3:14b` is used as an LLM judge to automatically score test responses. Without it, you'll need to manually review each result. You can use other Ollama models, but `qwen3:14b` is recommended for accurate scoring.
+More details → [docs/](docs/)
 
-## How to Use
+## Usage
 
-1. **Upload or select a prompt** - Upload .txt file, paste text, or choose an example
-2. **Configure LLM provider** - Select OpenAI, Anthropic, Grok, Gemini, or Ollama
-3. **Analyze Prompt** (optional) - Get AI insights on your prompt's structure and security
-4. **Run Benchmark** - Test against 287 attack vectors with automated scoring
-5. **Compare Versions** - Track improvements across multiple test runs
-6. **Export results** - Download as JSON or PDF report
+**CLI — run a benchmark:**
 
-## Available Prompts
+```bash
+python -m spb run \
+  --prompt prompts/customer-support-bot.txt \
+  --provider openai \
+  --model gpt-4o \
+  --api-key-env OPENAI_API_KEY \
+  --max-tests 100 \
+  --output results/run.json
+```
 
-### Business & Sales
-- **Customer Support Bot** - E-commerce support with jailbreak protection
-- **Sales Assistant** - Lead qualification with pricing controls
-- **HR Screening Bot** - Candidate screening with anti-discrimination rules
+**CLI — compare two runs:**
 
-### Technical
-- **Code Review Assistant** - OWASP Top 10 vulnerability detection
-- **Corporate Knowledge RAG** - Document access control and data privacy
+```bash
+python -m spb compare results/baseline.json results/candidate.json
+```
 
-### Compliance & Safety
-- **Legal Compliance Checker** - GDPR, CCPA, HIPAA guidance
-- **Financial Advisor Bot** - Educational content with disclaimers
-- **Educational Tutor** - Academic integrity enforcement
+**CLI — local Ollama (no API key needed):**
 
-### Content
-- **Social Media Creator** - Brand-locked fitness content generator
+```bash
+python -m spb run \
+  --prompt prompts/customer-support-bot.txt \
+  --provider ollama \
+  --model qwen3:14b \
+  --max-tests 25
+```
 
-## Attack Categories
+**Config file:**
 
-The benchmark tests these attack types:
+```bash
+python -m spb run -c benchmark.example.yaml
+```
 
-**Security Attacks**
-- Prompt Injection ("ignore previous instructions")
-- Jailbreaking (DAN mode, roleplay tricks)
-- Prompt Leaking (extracting system instructions)
-- Authority Bypass (fake CEO/admin claims)
+**REST API:**
 
-**Advanced Techniques**
-- Multilingual attacks (6 languages)
-- Encoding tricks (base64, ROT13, hex)
-- Token smuggling (word-by-word extraction)
-- RAG poisoning (fake document injection)
+```bash
+uvicorn src.api:app --port 8080
 
-**Domain-Specific**
-- Academic dishonesty attempts
-- Unauthorized discount requests
-- Legal/financial advice bypass
-- HR discrimination triggers
-- Data privacy violations
-
-## Best Practices
-
-**Do:**
-- Test prompts before production
-- Use environment variables for secrets
-- Monitor suspicious requests
-- Update against new attack vectors
-- Use multiple security layers
-
-**Don't:**
-- Store API keys in prompts
-- Rely only on prompts for security
-- Ignore failed tests
-- Skip Ollama judge review
-- Use one prompt for different access levels
+curl -X POST http://localhost:8080/runs \
+  -H "Authorization: Bearer $SPB_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"config": {"prompt_file": "prompts/customer-support-bot.txt", "provider": {"name": "ollama", "model": "qwen3:14b"}}}'
+```
 
 ## Project Structure
 
 ```
-system-prompt-benchmark/
-├── app.py                          # Main Streamlit application
-├── start.sh                        # Quick start script
-├── src/                            # Source code
-│   ├── core/                       # Core benchmark logic
-│   │   ├── benchmark_categories.py
-│   │   ├── run_universal_benchmark.py
-│   │   └── universal_judge.py
-│   ├── providers/                  # LLM provider integrations
-│   │   └── run_benchmark.py
-│   ├── metrics/                    # Scoring and analysis
-│   │   ├── semantic_metrics.py
-│   │   └── degradation_metrics.py
-│   └── utils/                      # Helper utilities
-│       ├── prompt_analyzer.py
-│       └── pdf_report.py
-├── prompts/                        # 9 example prompts
-└── tests/                          # 287 attack test cases
+src/
+  core/           benchmark runner, judge, detectors, categories
+  providers/      unified LLM provider layer (15+ backends)
+  datasets.py     dataset loading, validation, remote sync
+  api.py          FastAPI REST API
+  cli.py          command-line interface
+  metrics/        formal, semantic, and degradation metrics
+  plugins/        plugin manager and SDK
+  ui/             Streamlit view components
+  utils/          prompt analyzer, PDF report
+prompts/          9 example system prompts
+tests/            benchmark datasets
+datasets/         custom dataset examples
+config/           YAML configs
+results/          benchmark outputs (gitignored)
+docs/             plugin SDK reference, roadmap
+```
+
+## Status
+
+- Stage: Beta
+- Planned:
+  - HuggingFace dataset registry integration
+  - Automated prompt improvement suggestions
+  - CI/CD benchmark gate (`spb run` returns non-zero on score below threshold)
+  - Extended multimodal attack coverage
+
+## Testing
+
+```bash
+pytest tests/ -v
 ```
 
 ## Contributing
 
-Found a vulnerability or new attack vector?
+- Fork the repo
+- Create a feature branch
+- Open a pull request
 
-1. Open an issue with `security` label
-2. Describe the attack and provide example
-3. Propose a fix if possible
+Plugin development: see [docs/plugin-sdk.md](docs/plugin-sdk.md)
 
 ## License
 
-MIT License - Free for commercial and personal use.
+MIT
 
----
+## Contact
 
-**Made for the AI Safety community**
-
-Built by security-conscious prompt engineers
+- GitHub: [@KazKozDev](https://github.com/KazKozDev)

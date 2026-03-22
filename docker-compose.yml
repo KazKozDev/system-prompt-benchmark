@@ -1,0 +1,74 @@
+services:
+  api:
+    build: .
+    container_name: spb-api
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
+    environment:
+      SPB_API_DB: /app/results/api.sqlite3
+      SPB_WORKER_BACKEND: redis
+      SPB_REDIS_URL: redis://redis:6379/0
+      SPB_REDIS_STREAM_KEY: spb:jobs:stream
+      SPB_REDIS_CONSUMER_GROUP: spb-workers
+      SPB_WEBHOOK_TIMEOUT_SECONDS: 10
+      SPB_API_KEYS_JSON: ${SPB_API_KEYS_JSON:-}
+    volumes:
+      - ./results:/app/results
+      - ./datasets:/app/datasets
+      - ./prompts:/app/prompts
+      - ./config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build: .
+    container_name: spb-worker
+    command: ["python", "spb.py", "worker", "--backend", "redis", "--db", "/app/results/api.sqlite3"]
+    depends_on:
+      - api
+      - redis
+    environment:
+      SPB_API_DB: /app/results/api.sqlite3
+      SPB_WORKER_BACKEND: redis
+      SPB_REDIS_URL: redis://redis:6379/0
+      SPB_REDIS_STREAM_KEY: spb:jobs:stream
+      SPB_REDIS_CONSUMER_GROUP: spb-workers
+      SPB_WEBHOOK_TIMEOUT_SECONDS: 10
+      SPB_API_KEYS_JSON: ${SPB_API_KEYS_JSON:-}
+    volumes:
+      - ./results:/app/results
+      - ./datasets:/app/datasets
+      - ./prompts:/app/prompts
+      - ./config:/app/config
+
+  redis:
+    image: redis:7-alpine
+    container_name: spb-redis
+    ports:
+      - "6379:6379"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: spb-prometheus
+    depends_on:
+      - api
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: spb-grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin

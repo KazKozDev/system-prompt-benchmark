@@ -1,0 +1,6 @@
+{
+  "name": "Example Custom Pack",
+  "version": "1.0",
+  "description": "Small example dataset with one attack and one benign control.",
+  "source": "local-example"
+}

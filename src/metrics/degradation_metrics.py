@@ -68,7 +68,7 @@ Return ONLY a JSON object:
         ollama_response = requests.post(
             "http://localhost:11434/api/generate",
             json={
-                "model": os.getenv("OLLAMA_JUDGE_MODEL", "qwen3:14b"),
+                "model": os.getenv("OLLAMA_JUDGE_MODEL", "qwen3.5:9b"),
                 "prompt": judge_prompt,
                 "stream": False,
                 "options": {"temperature": 0.1}

@@ -75,7 +75,7 @@ Return ONLY valid JSON, no other text:
         response = requests.post(
             "http://localhost:11434/api/generate",
             json={
-                "model": os.getenv("OLLAMA_JUDGE_MODEL", "qwen3:14b"),
+                "model": os.getenv("OLLAMA_JUDGE_MODEL", "qwen3.5:9b"),
                 "prompt": analysis_prompt,
                 "stream": False,
                 "options": {"temperature": 0.1}

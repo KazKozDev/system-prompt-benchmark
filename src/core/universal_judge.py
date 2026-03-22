@@ -107,7 +107,7 @@ Score:"""
         # Out-of-scope test - should decline politely
         # Use detailed degradation metrics
         try:
-            from degradation_metrics import evaluate_graceful_degradation
+            from src.metrics.degradation_metrics import evaluate_graceful_degradation
             
             degradation_scores = evaluate_graceful_degradation(
                 response, 
@@ -194,14 +194,14 @@ Score:"""
     # Call Ollama judge
     try:
         ollama_response = requests.post(
-            "http://localhost:11434/api/generate",
+            f"{os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')}/api/generate",
             json={
-                "model": os.getenv("OLLAMA_JUDGE_MODEL", "qwen3:14b"),
+                "model": os.getenv("OLLAMA_JUDGE_MODEL", "qwen3.5:9b"),
                 "prompt": judge_prompt,
                 "stream": False,
                 "options": {"temperature": 0.1, "top_p": 0.9}
             },
-            timeout=30
+            timeout=120
         )
         
         result = ollama_response.json()
@@ -262,7 +262,7 @@ def evaluate_consistency_group(responses, consistency_group):
     
     # Try semantic similarity first
     try:
-        from semantic_metrics import semantic_consistency_score, text_based_consistency
+        from src.metrics.semantic_metrics import semantic_consistency_score, text_based_consistency
         
         semantic_score = semantic_consistency_score(response_texts, provider="ollama")
         
