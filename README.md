@@ -4,6 +4,11 @@
 
 Automated red-team evaluation of LLM system prompts across 12 security and behavioral categories.
 
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Providers](https://img.shields.io/badge/providers-15+-informational)
+![Attack Vectors](https://img.shields.io/badge/attack_vectors-287-red)
+
 ## Highlights
 
 - 12 evaluation categories: jailbreaks, injections, security, ethics, and more
@@ -151,9 +156,16 @@ system-prompt-benchmark/
 pytest tests/
 ```
 
+Test coverage:
+- `test_auth.py` — API key authentication and role-based access
+- `test_categories.py` — benchmark category mapping and weights
+- `test_detectors.py` — pattern detector logic
+- `test_evaluation.py` — response scoring and result classification
+- `test_metrics.py` — benchmark, degradation, and semantic metrics
+
 ## Contributing
 
-Fork → branch → PR.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding benchmark packs, provider integrations, and judge strategies.
 
 ---
 
