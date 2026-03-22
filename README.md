@@ -50,6 +50,8 @@ flowchart TB
         E[LLM Response] --> F[Judge Stack] --> G[Score + Report]
     end
     D --> E
+    style row1 fill:none,stroke:none
+    style row2 fill:none,stroke:none
 ```
 
 Components:
