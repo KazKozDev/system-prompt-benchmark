@@ -1,7 +1,8 @@
 <p align="center">
-  <img src="logo.png" width="320" alt="System Prompt Benchmark">
+  <img src="assets/logo.png" width="320" alt="System Prompt Benchmark">
 </p>
 
+# system-prompt-benchmark
 
 Automated red-team evaluation of LLM system prompts across 12 security and behavioral categories.
 
@@ -12,107 +13,161 @@ Automated red-team evaluation of LLM system prompts across 12 security and behav
   <img src="https://img.shields.io/badge/Data_Leaks-Prevention-42A5F5?style=flat" alt="Leaks">
 </p>
 
+![License](https://img.shields.io/badge/license-MIT-blue)
+
 ## Highlights
 
-- Automated 300-test benchmark for any system prompt
-- Multi-turn adaptive attacks via dedicated red-team LLM
-- 15+ supported providers and customizable detector stack
-- Developer-friendly interfaces: Streamlit UI, CLI, and REST API
+- 12 evaluation categories: jailbreaks, injections, security, ethics, and more
+- 15+ provider integrations — OpenAI, Anthropic, Gemini, Bedrock, Ollama, and others
+- Three interfaces: CLI, Streamlit web UI, and REST API
+- Production-grade job queue with Redis, Prometheus metrics, and Grafana dashboards
+- Plugin SDK for custom providers, judges, transforms, and exporters
 
 ## Demo
 
-![Demo](docs/demo.gif)
+<!-- TODO: Add demo GIF or screenshot -->
 
 ## Overview
 
-System Prompt Benchmark evaluates your system prompt's resistance against adversarial inputs.
-It automatically runs up to 300 attack vectors across 12 security categories and scores the responses.
-Provides engineering teams with reproducible robustness metrics before shipping LLM features to production.
+`system-prompt-benchmark` evaluates how well an LLM system prompt holds up under adversarial conditions. You point it at a prompt file, pick a provider, and it runs a dataset of attack scenarios through the model — then scores each response across 12 behavioral categories.
+
+It covers the full workflow: local experimentation via CLI or browser UI, team-scale API deployments with async job queues, and pluggable evaluation logic for custom use cases.
 
 ## Motivation
 
-- Playgrounds and ad-hoc testing miss complex, multi-turn jailbreaks.
-- Most tools test generic model safety, not prompt-specific security.
-- This project provides a systematic, automated red-teaming pipeline for your exact system instructions.
+System prompts are the primary control surface for LLM-based products — but most teams ship them without structured testing. Manual red-teaming is slow and inconsistent. Existing safety tools test models in isolation, not deployed prompt configurations. This project fills that gap: a reproducible, multi-category benchmark that treats the system prompt as the unit under test.
 
 ## Features
 
-- 3 scaling modes: Quick, Standard, and Full benchmark
-- 12 evaluation categories including jailbreak resistance and instruction following
-- 5 adaptive attack strategies like authority escalation and tool hijacking
-- Pluggable judge and detector stack
-- Dataset management with remote catalog sync
+- 12 weighted benchmark categories: role adherence, jailbreak resistance, security, instruction following, ethics compliance, consistency, scope boundaries, graceful degradation, robustness, constraint following, multi-turn behavior, edge cases
+- Ensemble judge: pattern detectors + LLM judge + optional OpenAI Moderation, Perspective API, HarmJudge, and external webhook detectors
+- Configurable via YAML/JSON benchmark config files
+- Dataset transforms and remote catalog sync with integrity verification
+- Parallel benchmark execution with rate limiting and retry logic
+- PDF report export and interactive Streamlit analytics views
+- Prompt analyzer for automatic constraint detection from system prompt text
+- Async REST API with SQLite job store, Redis Stream broker, and webhook delivery
 
 ## Architecture
 
+```mermaid
+graph LR
+    A[System Prompt + Dataset] --> B[CLI / UI / API]
+    B --> C[Benchmark Engine]
+    C --> D[Provider Layer]
+    D --> E[LLM Response]
+    E --> F[Judge Stack]
+    F --> G[Score + Report]
+```
+
 Components:
+- `src/core/` — benchmark runner, 12-category classifier, universal judge, assertions, detectors
+- `src/providers/` — 15+ provider adapters with embedding and rerank support
+- `src/platform/` — job store (SQLite), Redis worker backend, API auth, Prometheus monitoring
+- `src/ui/` — Streamlit views: results, compare, datasets, analytics
+- `src/plugins/` — plugin manager and SDK for custom extension points
+- `src/metrics/` — benchmark, degradation, and semantic metric calculations
+- `src/datasets.py` — dataset loading (JSON/JSONL/CSV), transforms, preset registry, remote sync
 
-- Runner — handles parallel test execution and rate limiting
-- Providers — unifies 15+ LLM APIs behind a single interface
-- Judge — scores responses using heuristic, LLM, and consistency strategies
-
-Flow:
-
-System Prompt + Tests → Provider Call → Detector Stack → Universal Judge → Final Report
+Flow: `prompt file + test dataset → provider call → judge evaluation → category scores → JSON results + PDF report`
 
 ## Tech Stack
 
-- Python
-- Streamlit
-- FastAPI
-- SQlite
+- Python 3.12
+- Streamlit — web UI
+- FastAPI + Uvicorn — REST API
+- OpenAI / Anthropic / Google Generativeai / Boto3 / Cohere — provider SDKs
+- Redis — async job queue (Redis Streams)
+- Prometheus + Grafana — monitoring
+- Plotly + Pandas — analytics and charts
+- ReportLab — PDF report generation
 
 ## Quick Start
 
-1. `git clone https://github.com/KazKozDev/system-prompt-benchmark.git`
-2. `pip install -r requirements.txt`
-3. `bash start.sh`
+```bash
+# 1. Clone and install
+git clone <repo-url>
+cd system-prompt-benchmark
+pip install -r requirements.txt
 
-More details → docs/setup.md
+# 2. Run the web UI
+./start.sh
+# Opens at http://localhost:8501
+
+# 3. Or run the CLI directly
+python spb.py run \
+  --prompt prompts/customer-support-bot.txt \
+  --tests tests/safeprompt-benchmark-v2.json \
+  --provider openai \
+  --model gpt-4o
+```
+
+Docker (with Redis, Prometheus, Grafana):
+```bash
+docker compose up
+# API at http://localhost:8000
+# Grafana at http://localhost:3000
+```
 
 ## Usage
 
-Example:
-
+Run a benchmark from a YAML config:
 ```bash
-python -m spb run --prompt custom.txt --provider ollama --model qwen3:14b
+python spb.py run -c benchmark.example.yaml --verbose
+```
+
+Compare two result files:
+```bash
+python spb.py compare results/base.json results/candidate.json
+```
+
+Validate a custom dataset:
+```bash
+python spb.py validate-dataset tests/my-pack.json
+```
+
+Sync remote dataset packs:
+```bash
+python spb.py sync-packs --catalog-url https://example.com/catalog.json
 ```
 
 ## Project Structure
 
 ```
-src/
-  core/
-  providers/
-  metrics/
-  plugins/
+system-prompt-benchmark/
+├── spb.py                  # CLI entry point
+├── app.py                  # Streamlit web UI
+├── src/
+│   ├── core/               # Benchmark engine, judge, categories, detectors
+│   ├── providers/          # LLM provider adapters
+│   ├── platform/           # API auth, job store, worker backend, monitoring
+│   ├── ui/                 # Streamlit views
+│   ├── metrics/            # Score calculation modules
+│   ├── plugins/            # Plugin SDK and manager
+│   └── utils/              # PDF export, prompt analyzer
+├── tests/                  # Attack and quality benchmark packs (JSON)
+├── prompts/                # Example system prompts
+├── datasets/               # Custom dataset packs
+└── deploy/                 # Prometheus config
 ```
-
-## Status
-
-- Stage: Beta
-- Planned:
-  - HuggingFace dataset registry integration
-  - CI/CD benchmark gate
 
 ## Testing
 
 ```bash
-pytest tests/ -v
+pytest tests/
 ```
 
 ## Contributing
 
-- Fork
-- Branch
-- PR
+Fork → branch → PR.
 
-## License
+---
 
-MIT
+MIT - see LICENSE
 
-## Contact
+If you like this project, please give it a star ⭐
 
-- GitHub
-- LinkedIn
-- Email
+For questions, feedback, or support, reach out to:
+
+[LinkedIn](https://www.linkedin.com/in/kazkozdev/)
+[Email](mailto:kazkozdev@gmail.com)

@@ -32,7 +32,7 @@ from src.utils.prompt_analyzer import analyze_system_prompt
 # Page config
 st.set_page_config(
     page_title="Universal System Prompt Benchmark",
-    page_icon="favicon-32.png",
+    page_icon="assets/favicon-32.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -577,7 +577,7 @@ st.markdown(
 
 # Sidebar
 with st.sidebar:
-    logo_path = Path("logo.png")
+    logo_path = Path("assets/logo.png")
     if logo_path.exists():
         with open(logo_path, "rb") as f:
             b64_logo = base64.b64encode(f.read()).decode()
