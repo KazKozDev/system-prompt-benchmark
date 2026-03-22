@@ -14,7 +14,7 @@ Automated red-team evaluation of LLM system prompts across 12 security and behav
 
 ## Demo
 
-<!-- TODO: Add demo GIF or screenshot -->
+![Demo](assets/demo.png)
 
 ## Overview
 
