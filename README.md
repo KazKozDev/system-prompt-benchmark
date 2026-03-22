@@ -40,9 +40,16 @@ System prompts are the primary control surface for LLM-based products — but mo
 ## Architecture
 
 ```mermaid
-graph LR
-    A[System Prompt + Dataset] --> B[CLI / UI / API] --> C[Benchmark Engine] --> D[Provider Layer]
-    D --> E[LLM Response] --> F[Judge Stack] --> G[Score + Report]
+flowchart TB
+    subgraph row1[" "]
+        direction LR
+        A[System Prompt + Dataset] --> B[CLI / UI / API] --> C[Benchmark Engine] --> D[Provider Layer]
+    end
+    subgraph row2[" "]
+        direction LR
+        E[LLM Response] --> F[Judge Stack] --> G[Score + Report]
+    end
+    D --> E
 ```
 
 Components:
