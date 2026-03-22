@@ -2,16 +2,7 @@
   <img src="assets/logo.png" width="320" alt="System Prompt Benchmark">
 </p>
 
-# system-prompt-benchmark
-
 Automated red-team evaluation of LLM system prompts across 12 security and behavioral categories.
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Attack_Vectors-287-1565C0?style=flat" alt="Vectors">
-  <img src="https://img.shields.io/badge/Prompt_Injection-Tested-1976D2?style=flat" alt="Injection">
-  <img src="https://img.shields.io/badge/Jailbreak-Detection-2196F3?style=flat" alt="Jailbreak">
-  <img src="https://img.shields.io/badge/Data_Leaks-Prevention-42A5F5?style=flat" alt="Leaks">
-</p>
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -55,6 +46,7 @@ graph LR
     A[System Prompt + Dataset] --> B[CLI / UI / API]
     B --> C[Benchmark Engine]
     C --> D[Provider Layer]
+
     D --> E[LLM Response]
     E --> F[Judge Stack]
     F --> G[Score + Report]
