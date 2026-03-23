@@ -2,9 +2,7 @@
   <img src="assets/logo.png" width="320" alt="System Prompt Benchmark">
 </p>
 
-Automated red-team evaluation of LLM system prompts across 12 security and behavioral categories.
-
-Bring your own system prompt, test it against adversarial scenarios, and catch security weaknesses before deployment.
+<p align="center">Automated red-team evaluation of LLM system prompts across 12 security and behavioral categories. Bring your own prompt, test it against adversarial scenarios, and catch security weaknesses before deployment.</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.12-blue" alt="Python">
