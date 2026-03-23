@@ -26,6 +26,11 @@ from src.datasets import (
 from src.ui.datasets import load_uploaded_dataset
 
 
+DATASET_SOURCE_KEY = "dataset_source_select"
+BENCHMARK_DATASET_SNAPSHOT_SOURCE = "Saved Benchmark Preset Snapshot"
+BENCHMARK_DATASET_SNAPSHOT_KEY = "benchmark_dataset_snapshot"
+
+
 def render_dataset_selector(
     default_dataset_path: str = "tests/safeprompt-benchmark-v2.json",
 ) -> dict:
@@ -106,7 +111,7 @@ def render_dataset_selector(
                             "path",
                         ]
                     ],
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True,
                 )
             if st.button("Sync Selected Packs", key="dataset_sync_remote_catalog"):
@@ -126,15 +131,20 @@ def render_dataset_selector(
                     st.error(f"Failed to sync packs: {exc}")
             st.json(remote_catalog)
 
+    dataset_source_options = [
+        "Built-in Benchmark",
+        "Preset Profiles",
+        "Local Registry Packs",
+        "Upload Custom Pack",
+    ]
+    if st.session_state.get(BENCHMARK_DATASET_SNAPSHOT_KEY):
+        dataset_source_options.append(BENCHMARK_DATASET_SNAPSHOT_SOURCE)
+
     dataset_source = st.radio(
         "Dataset Source",
-        [
-            "Built-in Benchmark",
-            "Preset Profiles",
-            "Local Registry Packs",
-            "Upload Custom Pack",
-        ],
+        dataset_source_options,
         label_visibility="collapsed",
+        key=DATASET_SOURCE_KEY,
     )
 
     dataset_label = "Built-in Benchmark"
@@ -250,7 +260,7 @@ def render_dataset_selector(
                 st.error(f"Failed to load registry pack: {exc}")
         else:
             st.info("No registry packs match the current filters.")
-    else:
+    elif dataset_source == "Upload Custom Pack":
         uploaded_dataset = st.file_uploader(
             "Upload dataset",
             type=["json", "jsonl", "csv"],
@@ -275,6 +285,19 @@ def render_dataset_selector(
                 st.error(f"Failed to parse uploaded dataset: {exc}")
         else:
             st.info("Upload a custom pack to benchmark your own attack set.")
+    else:
+        snapshot = st.session_state.get(BENCHMARK_DATASET_SNAPSHOT_KEY) or {}
+        dataset_label = snapshot.get("label", "Saved Benchmark Preset Snapshot")
+        dataset_path = snapshot.get("path")
+        dataset_tests = list(snapshot.get("tests", []))
+        dataset_issues = list(snapshot.get("issues", []))
+        dataset_metadata = dict(snapshot.get("metadata", {}))
+        if dataset_tests:
+            st.success(
+                f"Loaded saved benchmark preset snapshot with {len(dataset_tests)} tests"
+            )
+        else:
+            st.warning("The saved benchmark preset snapshot does not contain tests.")
 
     if dataset_tests:
         category_count = len(
@@ -290,7 +313,7 @@ def render_dataset_selector(
             preview_rows = pd.DataFrame(dataset_tests[:10])[
                 ["id", "category", "universal_category", "should_refuse"]
             ]
-            st.dataframe(preview_rows, use_container_width=True)
+            st.dataframe(preview_rows, width="stretch")
             st.json(dataset_metadata)
         if dataset_issues:
             with st.expander("Dataset Validation Issues"):
@@ -413,7 +436,7 @@ def _render_local_registry_pack_picker(packs: list[dict]) -> list[dict]:
                     for pack in filtered
                 ]
             )
-            st.dataframe(preview, use_container_width=True, hide_index=True)
+            st.dataframe(preview, width="stretch", hide_index=True)
         return filtered
 
 
@@ -554,7 +577,7 @@ def render_build_pack_view(
     preview_rows = pd.DataFrame(generated_tests[-min(10, max(generated_count, 1)) :])[
         ["id", "category", "universal_category", "should_refuse"]
     ]
-    st.dataframe(preview_rows, use_container_width=True)
+    st.dataframe(preview_rows, width="stretch")
 
     export_payload = json.dumps(
         {"metadata": generated_metadata, "tests": generated_tests},
@@ -812,7 +835,7 @@ def _render_dataset_row_editor(dataset_tests: list[dict]) -> list[dict]:
         filtered_view = [row for row in table_rows if int(row["id"]) in filtered_ids]
         edited_df = st.data_editor(
             pd.DataFrame(filtered_view),
-            use_container_width=True,
+            width="stretch",
             num_rows="dynamic",
             key="dataset_row_editor",
             column_config={

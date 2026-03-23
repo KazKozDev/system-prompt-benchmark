@@ -31,6 +31,24 @@ provider:
 judge:
   strategy: auto
   ollama_model: qwen3.5:9b
+  provider:
+    name: ollama
+    model: qwen3.5:9b
+    api_key_env:
+    base_url: http://localhost:11434
+    api_version:
+    aws_region:
+    project_id:
+    location:
+    headers: {}
+    request_template: {}
+    response_text_path:
+    response_tokens_path:
+    timeout_seconds: 30
+    max_retries: 2
+    retry_backoff_seconds: 1.5
+    temperature: 0.2
+    max_tokens: 2048
   timeout_seconds: 30
   pass_threshold: 0.7
   review_threshold: 0.4

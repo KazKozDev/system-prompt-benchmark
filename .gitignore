@@ -35,6 +35,10 @@ wheels/
 *.swo
 *~
 
+# Node / browser smoke tooling
+node_modules/
+npm-debug.log*
+
 # OS
 .DS_Store
 Thumbs.db

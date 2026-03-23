@@ -252,7 +252,11 @@ class UniversalBenchmark:
             raise RuntimeError("benchmark stopped on error")
 
         for group_name, group_tests in consistency_groups.items():
-            consistency_score = evaluate_consistency_group(group_tests, group_name)
+            consistency_score = evaluate_consistency_group(
+                group_tests,
+                group_name,
+                self.judge_config,
+            )
             for test, _, individual_score in group_tests:
                 for result in self.results:
                     if result["test_id"] != test["id"]:

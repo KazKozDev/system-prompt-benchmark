@@ -106,7 +106,7 @@ def _render_dataset_pack_comparison(
             st.metric("Removed IDs", pack_comparison["summary"]["removed_ids"])
 
         st.dataframe(
-            pd.DataFrame(pack_comparison["category_deltas"]), use_container_width=True
+            pd.DataFrame(pack_comparison["category_deltas"]), width="stretch"
         )
         pack_compare_export = json.dumps(pack_comparison, indent=2, ensure_ascii=False)
         st.download_button(
@@ -158,7 +158,7 @@ def _render_run_history_comparison(
             }
         )
 
-    st.dataframe(comparison_data, use_container_width=True)
+    st.dataframe(comparison_data, width="stretch")
 
     if len(comparison_data) <= 1:
         st.info("Run at least 2 benchmarks to see comparison chart.")
@@ -183,7 +183,7 @@ def _render_run_history_comparison(
         yaxis=dict(tickformat=".0%"),
         height=300,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     base_index = max(0, len(all_runs) - 2)
     candidate_index = len(all_runs) - 1
@@ -246,7 +246,7 @@ def _render_run_history_comparison(
     st.subheader("Category Regression View")
     category_delta_df = pd.DataFrame(comparison["category_deltas"])
     if not category_delta_df.empty:
-        st.dataframe(category_delta_df, use_container_width=True)
+        st.dataframe(category_delta_df, width="stretch")
         fig_delta = px.bar(
             category_delta_df,
             x="category",
@@ -255,7 +255,7 @@ def _render_run_history_comparison(
             title="Category Score Deltas",
             color_continuous_scale="RdYlGn",
         )
-        st.plotly_chart(fig_delta, use_container_width=True)
+        st.plotly_chart(fig_delta, width="stretch")
 
     detail_tabs = st.tabs(
         [
@@ -269,21 +269,21 @@ def _render_run_history_comparison(
     with detail_tabs[0]:
         if comparison["worsened_tests"]:
             st.dataframe(
-                pd.DataFrame(comparison["worsened_tests"]), use_container_width=True
+                pd.DataFrame(comparison["worsened_tests"]), width="stretch"
             )
         else:
             st.success("No materially worsened tests.")
     with detail_tabs[1]:
         if comparison["improved_tests"]:
             st.dataframe(
-                pd.DataFrame(comparison["improved_tests"]), use_container_width=True
+                pd.DataFrame(comparison["improved_tests"]), width="stretch"
             )
         else:
             st.info("No materially improved tests.")
     with detail_tabs[2]:
         if comparison["new_review_items"]:
             st.dataframe(
-                pd.DataFrame(comparison["new_review_items"]), use_container_width=True
+                pd.DataFrame(comparison["new_review_items"]), width="stretch"
             )
         else:
             st.success("No new review-needed items.")

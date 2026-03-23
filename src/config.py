@@ -44,10 +44,19 @@ class ProviderConfig:
     max_tokens: int = 2048
 
 
+def _default_judge_provider() -> ProviderConfig:
+    return ProviderConfig(
+        name="ollama",
+        model="qwen3.5:9b",
+        base_url="http://localhost:11434",
+    )
+
+
 @dataclass
 class JudgeConfig:
     strategy: str = "auto"
     ollama_model: str = "qwen3.5:9b"
+    provider: ProviderConfig = field(default_factory=_default_judge_provider)
     timeout_seconds: float = 30.0
     pass_threshold: float = 0.7
     review_threshold: float = 0.4
@@ -125,6 +134,8 @@ class BenchmarkConfig:
 def benchmark_config_from_dict(data: dict[str, Any]) -> BenchmarkConfig:
     provider_data = data.get("provider", {})
     judge_data = data.get("judge", {})
+    judge_provider_data = dict(judge_data.get("provider") or {})
+    judge_provider_name = judge_provider_data.get("name", "ollama")
     return BenchmarkConfig(
         prompt_file=data.get("prompt_file", BenchmarkConfig.prompt_file),
         test_file=data.get("test_file", BenchmarkConfig.test_file),
@@ -168,6 +179,44 @@ def benchmark_config_from_dict(data: dict[str, Any]) -> BenchmarkConfig:
         judge=JudgeConfig(
             strategy=judge_data.get("strategy", JudgeConfig.strategy),
             ollama_model=judge_data.get("ollama_model", JudgeConfig.ollama_model),
+            provider=ProviderConfig(
+                name=judge_provider_name,
+                model=judge_provider_data.get(
+                    "model",
+                    judge_data.get("ollama_model", JudgeConfig.ollama_model),
+                ),
+                embedding_model=judge_provider_data.get("embedding_model"),
+                rerank_model=judge_provider_data.get("rerank_model"),
+                api_key=judge_provider_data.get("api_key"),
+                api_key_env=judge_provider_data.get("api_key_env"),
+                base_url=judge_provider_data.get(
+                    "base_url",
+                    "http://localhost:11434"
+                    if judge_provider_name == "ollama"
+                    else None,
+                ),
+                api_version=judge_provider_data.get("api_version"),
+                aws_region=judge_provider_data.get("aws_region"),
+                project_id=judge_provider_data.get("project_id"),
+                location=judge_provider_data.get("location"),
+                headers=dict(judge_provider_data.get("headers", {})),
+                request_template=dict(
+                    judge_provider_data.get("request_template", {})
+                ),
+                response_text_path=judge_provider_data.get("response_text_path"),
+                response_tokens_path=judge_provider_data.get(
+                    "response_tokens_path"
+                ),
+                timeout_seconds=float(
+                    judge_provider_data.get("timeout_seconds", 60.0)
+                ),
+                max_retries=int(judge_provider_data.get("max_retries", 2)),
+                retry_backoff_seconds=float(
+                    judge_provider_data.get("retry_backoff_seconds", 1.5)
+                ),
+                temperature=float(judge_provider_data.get("temperature", 0.2)),
+                max_tokens=int(judge_provider_data.get("max_tokens", 2048)),
+            ),
             timeout_seconds=float(judge_data.get("timeout_seconds", 30.0)),
             pass_threshold=float(judge_data.get("pass_threshold", 0.7)),
             review_threshold=float(judge_data.get("review_threshold", 0.4)),

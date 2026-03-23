@@ -96,6 +96,10 @@ pip install -r requirements.txt
 ./start.sh
 # Opens at http://localhost:8501
 
+# macOS Finder double-click launcher
+./start.command
+# Or double-click start.command in Finder
+
 # 3. Or run the CLI directly
 python spb.py run \
   --prompt prompts/customer-support-bot.txt \

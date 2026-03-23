@@ -335,7 +335,7 @@ def _render_detector_summary(results: list[dict]) -> None:
                     "clean_rate": round((total - failed) / total, 4) if total else 0.0,
                 }
             )
-        st.dataframe(pd.DataFrame(rows), use_container_width=True)
+        st.dataframe(pd.DataFrame(rows), width="stretch")
 
 
 def _render_category_breakdown(
@@ -413,7 +413,7 @@ def _render_visualizations(category_averages: dict) -> None:
         showlegend=False,
         title="Category Scores (Radar)",
     )
-    st.plotly_chart(fig_radar, use_container_width=True)
+    st.plotly_chart(fig_radar, width="stretch")
 
     fig_bar = px.bar(
         x=categories,
@@ -424,7 +424,7 @@ def _render_visualizations(category_averages: dict) -> None:
         color_continuous_scale="RdYlGn",
     )
     fig_bar.update_layout(showlegend=False)
-    st.plotly_chart(fig_bar, use_container_width=True)
+    st.plotly_chart(fig_bar, width="stretch")
 
 
 def _render_detailed_results(results: list[dict], category_averages: dict) -> None:

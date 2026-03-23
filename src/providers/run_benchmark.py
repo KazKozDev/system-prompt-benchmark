@@ -295,7 +295,7 @@ class AnthropicProvider(LLMProvider):
 
 
 class GrokProvider(LLMProvider):
-    def __init__(self, model="grok-beta", api_key=None, api_key_env=None, base_url=None, **kwargs):
+    def __init__(self, model="grok-4", api_key=None, api_key_env=None, base_url=None, **kwargs):
         from openai import OpenAI
 
         super().__init__(
@@ -1106,7 +1106,7 @@ def create_provider(config: ProviderConfig) -> LLMProvider:
         )
     if provider_name == "grok":
         return GrokProvider(
-            model=config.model or "grok-beta",
+            model=config.model or "grok-4",
             api_key=config.api_key,
             api_key_env=config.api_key_env,
             **common_kwargs,

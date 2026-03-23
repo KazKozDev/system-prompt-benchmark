@@ -1,0 +1,10 @@
+{
+  "name": "system-prompt-benchmark-ui-smoke",
+  "private": true,
+  "scripts": {
+    "test:admin-smoke": "node tests/browser/admin-smoke.js"
+  },
+  "devDependencies": {
+    "playwright": "1.58.2"
+  }
+}

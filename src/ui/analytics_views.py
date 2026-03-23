@@ -147,7 +147,7 @@ def render_detector_analytics(results: list[dict]) -> None:
             },
             na_rep="–",
         ),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -260,7 +260,7 @@ def _render_detector_category_heatmap(stats: dict, results: list[dict]) -> None:
         height=max(420, len(detectors) * 24 + 120),
         margin=dict(l=250, r=20, t=60, b=60),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     st.caption(
         "Each cell shows **fired / evaluated** for that detector × category pair. "
         "Red = high fire rate. A high rate in critical categories (security, jailbreak) is expected; "
@@ -296,7 +296,7 @@ def _render_fp_chart(summary_rows: list[dict]) -> None:
         xaxis_tickangle=-40,
         coloraxis_colorbar_tickformat=".0%",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     st.caption(
         "**False positive**: the detector flagged a response as suspicious, "
         "but the test received a PASS verdict overall. "
@@ -326,7 +326,7 @@ def _render_fn_chart(summary_rows: list[dict]) -> None:
         hover_data=["Evaluated", "Fired", "Description"],
     )
     fig.update_layout(xaxis_tickangle=-40)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     st.caption(
         "**Missed detection (false negative)**: the test failed (model jailbroken or leaked data) "
         "but this detector produced no signal. High values reveal blind spots in the detector stack."
@@ -371,7 +371,7 @@ def _render_detector_per_attack(stats: dict, results: list[dict]) -> None:
         margin=dict(l=250, r=20, t=60, b=120),
     )
     fig.update_xaxes(tickangle=-50)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     st.caption(
         "Absolute fire counts per detector × attack type pair. "
         "Useful for identifying which attack classes each detector is sensitive to."
@@ -398,7 +398,7 @@ def render_attack_type_breakdown(results: list[dict]) -> None:
 
     st.dataframe(
         df.style.format({"Fail Rate": "{:.0%}", "Avg Score": "{:.2f}"}, na_rep="–"),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -418,7 +418,7 @@ def render_attack_type_breakdown(results: list[dict]) -> None:
         yaxis_tickformat=".0%",
         coloraxis_colorbar_tickformat=".0%",
     )
-    st.plotly_chart(fig_bar, use_container_width=True)
+    st.plotly_chart(fig_bar, width="stretch")
 
     # Scatter: avg score vs fail rate (only when there's enough variety)
     if len(rows_sorted) >= 4:
@@ -438,7 +438,7 @@ def render_attack_type_breakdown(results: list[dict]) -> None:
             yaxis_tickformat=".0%",
             coloraxis_colorbar_tickformat=".0%",
         )
-        st.plotly_chart(fig_scatter, use_container_width=True)
+        st.plotly_chart(fig_scatter, width="stretch")
 
     # Top-N worst attack types callout
     worst = [r for r in rows_sorted if r["Fail Rate"] >= 0.5]
@@ -550,7 +550,7 @@ def render_detector_regression(base_run: dict, candidate_run: dict) -> None:
             },
             na_rep="–",
         ),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -622,7 +622,7 @@ def render_detector_regression(base_run: dict, candidate_run: dict) -> None:
             yaxis_tickformat="+.0%",
             coloraxis_colorbar_tickformat="+.0%",
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
 
 def render_attack_type_regression(base_run: dict, candidate_run: dict) -> None:
@@ -674,7 +674,7 @@ def render_attack_type_regression(base_run: dict, candidate_run: dict) -> None:
             },
             na_rep="–",
         ),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -694,7 +694,7 @@ def render_attack_type_regression(base_run: dict, candidate_run: dict) -> None:
             yaxis_tickformat="+.0%",
             coloraxis_colorbar_tickformat="+.0%",
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # Callouts
     worsened = [r for r in rows if r["Δ Fail Rate"] > 0.1]

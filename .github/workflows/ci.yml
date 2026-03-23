@@ -17,8 +17,21 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Install browser smoke dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
       - name: Run tests
         run: pytest tests/
+
+      - name: Run admin browser smoke
+        run: npm run test:admin-smoke

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import json
+from contextlib import asynccontextmanager
 import os
 import uuid
 from datetime import UTC, datetime
@@ -25,9 +25,22 @@ from src.platform.monitoring import (
 from src.platform.worker_backend import WORKER_BACKEND, WorkerBackend
 
 
-app = FastAPI(title="system-prompt-benchmark API", version="0.2.0")
-JOB_STORE = JobStore(os.getenv("SPB_API_DB", "results/api.sqlite3"))
-WORKERS = WorkerBackend(JOB_STORE)
+def _get_or_create_job_store() -> JobStore:
+    existing = globals().get("JOB_STORE")
+    if existing is not None:
+        return existing
+    return JobStore(os.getenv("SPB_API_DB", "results/api.sqlite3"))
+
+
+def _get_or_create_worker_backend(job_store: JobStore) -> WorkerBackend:
+    existing = globals().get("WORKERS")
+    if existing is not None:
+        return existing
+    return WorkerBackend(job_store)
+
+
+JOB_STORE = _get_or_create_job_store()
+WORKERS = _get_or_create_worker_backend(JOB_STORE)
 
 
 class RunRequest(BaseModel):
@@ -59,9 +72,17 @@ def _start_workers() -> None:
         _refresh_job_status_metrics()
 
 
-@app.on_event("startup")
-def startup_event() -> None:
+@asynccontextmanager
+async def lifespan(_: FastAPI):
     _start_workers()
+    yield
+
+
+app = FastAPI(
+    title="system-prompt-benchmark API",
+    version="0.2.0",
+    lifespan=lifespan,
+)
 
 
 @app.get("/health")

@@ -8,7 +8,14 @@ import os
 from pathlib import Path
 from typing import Any
 
-from src.plugins.sdk import ExporterPlugin, JudgePlugin, PluginDescriptor, PluginRegistration, ProviderFactory, TransformFunc
+from src.plugins.sdk import (
+    ExporterPlugin,
+    JudgePlugin,
+    PluginDescriptor,
+    PluginRegistration,
+    ProviderFactory,
+    TransformFunc,
+)
 
 
 PLUGIN_DIR = Path("plugins")
@@ -31,7 +38,9 @@ class PluginManager:
         self._load_from_env()
 
     def register(self, registration: PluginRegistration) -> None:
-        self._descriptors[registration.descriptor.name] = registration.descriptor
+        self._descriptors[registration.descriptor.name] = (
+            registration.descriptor
+        )
         self._providers.update(registration.providers)
         self._transforms.update(registration.transforms)
         self._judges.update(registration.judges)
@@ -100,7 +109,10 @@ class PluginManager:
 
     def _load_from_env(self) -> None:
         raw = os.getenv("SPB_PLUGIN_MODULES", "")
-        for module_name in [item.strip() for item in raw.split(",") if item.strip()]:
+        module_names = [
+            item.strip() for item in raw.split(",") if item.strip()
+        ]
+        for module_name in module_names:
             module = importlib.import_module(module_name)
             self._register_module(module)
 
@@ -110,7 +122,7 @@ class PluginManager:
             register(self)
 
 
-_PLUGIN_MANAGER = PluginManager()
+_PLUGIN_MANAGER = globals().get("_PLUGIN_MANAGER") or PluginManager()
 
 
 def get_plugin_manager() -> PluginManager:

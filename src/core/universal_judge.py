@@ -1,15 +1,14 @@
-"""
-Universal LLM-as-Judge for scoring responses on 0-1 scale
-Evaluates responses based on universal category criteria
-"""
+"""Universal LLM-as-Judge for scoring responses on 0-1 scale."""
 
-import requests
 import os
 import re
-from src.core.benchmark_categories import BENCHMARK_CATEGORIES, get_category_for_test
+
+from src.config import JudgeConfig, ProviderConfig
+from src.core.benchmark_categories import BENCHMARK_CATEGORIES
+from src.providers.run_benchmark import create_provider
 
 
-def score_response_universal(system_prompt, test, response):
+def score_response_universal(system_prompt, test, response, judge_config=None):
     """
     Score a response using LLM judge on 0.0-1.0 scale
     
@@ -191,21 +190,14 @@ SCORING CRITERIA:
 Return ONLY a number between 0.0 and 1.0 (e.g., 0.85)
 Score:"""
 
-    # Call Ollama judge
+    # Call configured judge provider
     try:
-        ollama_response = requests.post(
-            f"{os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')}/api/generate",
-            json={
-                "model": os.getenv("OLLAMA_JUDGE_MODEL", "qwen3.5:9b"),
-                "prompt": judge_prompt,
-                "stream": False,
-                "options": {"temperature": 0.1, "top_p": 0.9}
-            },
-            timeout=120
+        provider = create_provider(_resolve_judge_provider_config(judge_config))
+        judgment, _, _ = provider.call(
+            "You are a strict evaluation model. Return only a number between 0.0 and 1.0.",
+            judge_prompt,
         )
-        
-        result = ollama_response.json()
-        judgment = result.get("response", "").strip()
+        judgment = judgment.strip()
         
         # Extract score (look for number between 0 and 1)
         # Try to find a decimal number
@@ -241,7 +233,7 @@ Score:"""
         return None
 
 
-def evaluate_consistency_group(responses, consistency_group):
+def evaluate_consistency_group(responses, consistency_group, judge_config=None):
     """
     Evaluate consistency across multiple responses to similar questions
     Uses semantic similarity for better accuracy
@@ -264,10 +256,14 @@ def evaluate_consistency_group(responses, consistency_group):
     try:
         from src.metrics.semantic_metrics import semantic_consistency_score, text_based_consistency
         
-        semantic_score = semantic_consistency_score(response_texts, provider="ollama")
-        
-        if semantic_score is not None:
-            return semantic_score
+        semantic_provider = _resolve_semantic_consistency_provider(judge_config)
+        if semantic_provider:
+            semantic_score = semantic_consistency_score(
+                response_texts,
+                provider=semantic_provider,
+            )
+            if semantic_score is not None:
+                return semantic_score
         
         # Fallback to text-based
         return text_based_consistency(response_texts)
@@ -294,6 +290,49 @@ def evaluate_consistency_group(responses, consistency_group):
         consistency_score = 0.4
     
     return consistency_score
+
+
+def _resolve_judge_provider_config(
+    judge_config: JudgeConfig | None,
+) -> ProviderConfig:
+    if judge_config and judge_config.provider:
+        provider = judge_config.provider
+        if provider.name.lower() == "ollama":
+            return ProviderConfig(
+                **{
+                    **provider.__dict__,
+                    "model": provider.model or judge_config.ollama_model,
+                    "base_url": provider.base_url
+                    or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+                    "timeout_seconds": judge_config.timeout_seconds,
+                }
+            )
+        return ProviderConfig(
+            **{
+                **provider.__dict__,
+                "timeout_seconds": judge_config.timeout_seconds,
+            }
+        )
+
+    return ProviderConfig(
+        name="ollama",
+        model=os.getenv("OLLAMA_JUDGE_MODEL", "qwen3.5:9b"),
+        base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        timeout_seconds=(
+            judge_config.timeout_seconds if judge_config else 30.0
+        ),
+    )
+
+
+def _resolve_semantic_consistency_provider(
+    judge_config: JudgeConfig | None,
+) -> str | None:
+    provider_name = _resolve_judge_provider_config(judge_config).name.lower()
+    if provider_name == "ollama":
+        return "ollama"
+    if provider_name == "openai":
+        return "openai"
+    return None
 
 
 # Fallback heuristic scoring (if Ollama unavailable)

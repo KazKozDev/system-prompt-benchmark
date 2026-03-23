@@ -1,47 +1,89 @@
-"""
-Automatic System Prompt Analyzer
-Extracts structure and requirements from any system prompt
-"""
+"""Automatic system prompt analysis helpers."""
 
-import requests
-import os
+from __future__ import annotations
+
 import json
 import re
-from typing import Dict, List
+from dataclasses import asdict
+from typing import Any
+
+from src.config import ProviderConfig
+from src.providers.run_benchmark import create_provider
 
 
-def analyze_system_prompt(system_prompt: str, use_llm: bool = True) -> Dict:
+def analyze_system_prompt(
+    system_prompt: str,
+    *,
+    provider_config: ProviderConfig | None = None,
+    use_llm: bool = True,
+) -> dict[str, Any]:
     """
     Automatically analyze system prompt and extract key components
     
     Args:
-        system_prompt: The system prompt text
-        use_llm: Use LLM for analysis (more accurate) vs heuristics
+        system_prompt: The system prompt text.
+        provider_config: Selected benchmark provider used for live analysis.
+        use_llm: Whether to use a live provider before falling back.
     
     Returns:
-        Dict with:
-        - role: Primary role/identity
-        - domain: Domain/expertise area
-        - capabilities: What it should do
-        - boundaries: What it should NOT do
-        - constraints: Format, length, tone, language constraints
-        - style: Communication style
-        - core_topics: Key topics it should know about
+        Analysis payload with extracted prompt structure and metadata about
+        whether the analysis came from a live provider or heuristics.
     """
-    
-    if use_llm:
-        return analyze_prompt_llm(system_prompt)
-    else:
-        return analyze_prompt_heuristic(system_prompt)
+
+    if use_llm and provider_config is not None:
+        return analyze_prompt_llm(system_prompt, provider_config)
+
+    fallback_reason = None
+    if use_llm and provider_config is None:
+        fallback_reason = "No provider configured for live analysis."
+    return _build_analysis_result(
+        analyze_prompt_heuristic(system_prompt),
+        system_prompt=system_prompt,
+        method="heuristic",
+        fallback_reason=fallback_reason,
+    )
 
 
-def analyze_prompt_llm(system_prompt: str) -> Dict:
-    """Use LLM to analyze system prompt"""
-    
-    analysis_prompt = f"""Analyze this system prompt and extract key information.
+def analyze_prompt_llm(
+    system_prompt: str,
+    provider_config: ProviderConfig,
+) -> dict[str, Any]:
+    """Use the selected provider to analyze a system prompt."""
+
+    analysis_prompt = _build_analysis_prompt(system_prompt)
+
+    try:
+        provider = create_provider(provider_config)
+        analysis_text, _tokens, _latency = provider.call(
+            (
+                "You are a strict prompt analysis engine. Return valid JSON only. "
+                "Do not include explanations, markdown, or prose outside the JSON."
+            ),
+            analysis_prompt,
+        )
+        analysis = _extract_analysis_json(analysis_text)
+        return _build_analysis_result(
+            analysis,
+            system_prompt=system_prompt,
+            method="llm",
+            provider_label=provider.get_model_name(),
+            provider_config=provider_config,
+        )
+    except Exception as exc:
+        return _build_analysis_result(
+            analyze_prompt_heuristic(system_prompt),
+            system_prompt=system_prompt,
+            method="heuristic",
+            fallback_reason=str(exc),
+            provider_config=provider_config,
+        )
+
+
+def _build_analysis_prompt(system_prompt: str) -> str:
+    return f"""Analyze this system prompt and extract key information.
 
 SYSTEM PROMPT:
-{system_prompt[:2000]}
+{system_prompt}
 
 Extract and return a JSON object with:
 
@@ -71,76 +113,63 @@ Return ONLY valid JSON, no other text:
   "core_topics": ["...", "..."]
 }}"""
 
-    try:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": os.getenv("OLLAMA_JUDGE_MODEL", "qwen3.5:9b"),
-                "prompt": analysis_prompt,
-                "stream": False,
-                "options": {"temperature": 0.1}
-            },
-            timeout=45
-        )
-        
-        result = response.json()
-        analysis_text = result.get("response", "").strip()
-        
-        # Extract JSON
-        start = analysis_text.find('{')
-        end = analysis_text.rfind('}') + 1
-        
-        if start >= 0 and end > start:
-            analysis = json.loads(analysis_text[start:end])
-            
-            # Validate and clean
-            analysis = validate_analysis(analysis)
-            return analysis
-    
-    except Exception as e:
-        print(f"  [WARNING] LLM analysis failed: {e}")
-    
-    # Fallback to heuristic
-    return analyze_prompt_heuristic(system_prompt)
+
+def _extract_analysis_json(analysis_text: str) -> dict[str, Any]:
+    start = analysis_text.find("{")
+    end = analysis_text.rfind("}") + 1
+    if start < 0 or end <= start:
+        raise ValueError("Provider response did not contain valid JSON.")
+    analysis = json.loads(analysis_text[start:end])
+    return validate_analysis(analysis)
 
 
-def analyze_prompt_heuristic(system_prompt: str) -> Dict:
-    """Heuristic-based analysis (fallback)"""
-    
+def analyze_prompt_heuristic(system_prompt: str) -> dict[str, Any]:
+    """Heuristic-based analysis fallback."""
+
     prompt_lower = system_prompt.lower()
-    
-    # Extract role
+
     role = extract_role(system_prompt)
-    
-    # Detect domain
     domain = detect_domain(prompt_lower)
-    
-    # Extract capabilities (things it SHOULD do)
     capabilities = extract_capabilities(system_prompt)
-    
-    # Extract boundaries (things it should NOT do)
     boundaries = extract_boundaries(system_prompt)
-    
-    # Detect constraints
     constraints = detect_constraints(system_prompt)
-    
-    # Extract core topics
     core_topics = extract_core_topics(system_prompt)
-    
+
     return {
-        'role': role,
-        'domain': domain,
-        'capabilities': capabilities,
-        'boundaries': boundaries,
-        'constraints': constraints,
-        'core_topics': core_topics
+        "role": role,
+        "domain": domain,
+        "capabilities": capabilities,
+        "boundaries": boundaries,
+        "constraints": constraints,
+        "core_topics": core_topics,
     }
 
 
+def _build_analysis_result(
+    analysis: dict[str, Any],
+    *,
+    system_prompt: str,
+    method: str,
+    provider_label: str | None = None,
+    provider_config: ProviderConfig | None = None,
+    fallback_reason: str | None = None,
+) -> dict[str, Any]:
+    result = validate_analysis(dict(analysis))
+    result["analysis_method"] = method
+    result["analysis_provider"] = provider_label
+    result["analysis_fallback_reason"] = fallback_reason
+    result["prompt_characters"] = len(system_prompt)
+    result["provider_config"] = (
+        {**asdict(provider_config), "api_key": None}
+        if provider_config is not None
+        else None
+    )
+    return result
+
+
 def extract_role(prompt: str) -> str:
-    """Extract primary role from prompt"""
-    
-    # Look for "You are a/an X" patterns
+    """Extract the primary assistant role from a prompt."""
+
     patterns = [
         r"you are (?:a |an )?([^.\n]+?)(?:\.|$)",
         r"act as (?:a |an )?([^.\n]+?)(?:\.|$)",
@@ -152,41 +181,39 @@ def extract_role(prompt: str) -> str:
         match = re.search(pattern, prompt.lower())
         if match:
             role = match.group(1).strip()
-            # Clean up
-            role = role.replace('\n', ' ').strip()
-            if len(role) < 100:  # Reasonable length
+            role = role.replace("\n", " ").strip()
+            if len(role) < 100:
                 return role
-    
+
     return "assistant"  # Default
 
 
 def detect_domain(prompt_lower: str) -> str:
-    """Detect domain/expertise area"""
-    
+    """Detect the dominant prompt domain using keyword buckets."""
+
     domain_keywords = {
-        'legal/compliance': ['legal', 'compliance', 'gdpr', 'regulation', 'law'],
-        'software/code': ['code', 'programming', 'developer', 'software', 'debug'],
-        'customer_support': ['support', 'customer', 'help', 'assist', 'order'],
-        'education': ['teach', 'tutor', 'student', 'learn', 'explain'],
-        'finance': ['financial', 'investment', 'trading', 'money', 'portfolio'],
-        'healthcare': ['medical', 'health', 'patient', 'diagnosis', 'treatment'],
-        'marketing': ['marketing', 'campaign', 'brand', 'advertising'],
-        'hr': ['hr', 'recruitment', 'hiring', 'candidate', 'employee']
+        "legal/compliance": ["legal", "compliance", "gdpr", "regulation", "law"],
+        "software/code": ["code", "programming", "developer", "software", "debug"],
+        "customer_support": ["support", "customer", "help", "assist", "order"],
+        "education": ["teach", "tutor", "student", "learn", "explain"],
+        "finance": ["financial", "investment", "trading", "money", "portfolio"],
+        "healthcare": ["medical", "health", "patient", "diagnosis", "treatment"],
+        "marketing": ["marketing", "campaign", "brand", "advertising"],
+        "hr": ["hr", "recruitment", "hiring", "candidate", "employee"],
     }
-    
+
     for domain, keywords in domain_keywords.items():
         if any(kw in prompt_lower for kw in keywords):
             return domain
-    
+
     return "general"
 
 
-def extract_capabilities(prompt: str) -> List[str]:
-    """Extract what the assistant SHOULD do"""
-    
+def extract_capabilities(prompt: str) -> list[str]:
+    """Extract positive assistant capabilities from prompt text."""
+
     capabilities = []
-    
-    # Look for positive instructions
+
     positive_patterns = [
         r"you (?:can|should|must|will) ([^.\n]+)",
         r"provide ([^.\n]+)",
@@ -196,20 +223,19 @@ def extract_capabilities(prompt: str) -> List[str]:
     
     for pattern in positive_patterns:
         matches = re.findall(pattern, prompt.lower())
-        for match in matches[:3]:  # Limit to 3
+        for match in matches[:3]:
             cap = match.strip()
             if 5 < len(cap) < 80:
                 capabilities.append(cap)
-    
+
     return capabilities[:5] if capabilities else ["assist users", "answer questions"]
 
 
-def extract_boundaries(prompt: str) -> List[str]:
-    """Extract what the assistant should NOT do"""
-    
+def extract_boundaries(prompt: str) -> list[str]:
+    """Extract negative guardrails from prompt text."""
+
     boundaries = []
-    
-    # Look for negative instructions
+
     negative_patterns = [
         r"(?:never|don't|do not|cannot|can't) ([^.\n]+)",
         r"you (?:are not|aren't) ([^.\n]+)",
@@ -223,102 +249,93 @@ def extract_boundaries(prompt: str) -> List[str]:
             boundary = match.strip()
             if 5 < len(boundary) < 80:
                 boundaries.append(boundary)
-    
+
     return boundaries[:5] if boundaries else ["provide harmful content"]
 
 
-def detect_constraints(prompt: str) -> Dict[str, str]:
-    """Detect format, length, tone, language constraints"""
-    
+def detect_constraints(prompt: str) -> dict[str, str | None]:
+    """Detect prompt constraints around formatting and tone."""
+
     prompt_lower = prompt.lower()
-    
+
     constraints = {
-        'format': None,
-        'length': None,
-        'tone': None,
-        'language': None
+        "format": None,
+        "length": None,
+        "tone": None,
+        "language": None,
     }
-    
-    # Format
-    if 'json' in prompt_lower:
-        constraints['format'] = 'JSON'
-    elif 'markdown' in prompt_lower:
-        constraints['format'] = 'Markdown'
-    elif 'code' in prompt_lower and 'block' in prompt_lower:
-        constraints['format'] = 'Code blocks'
-    
-    # Length
-    if 'concise' in prompt_lower or 'brief' in prompt_lower or 'short' in prompt_lower:
-        constraints['length'] = 'concise'
-    elif 'detailed' in prompt_lower or 'comprehensive' in prompt_lower:
-        constraints['length'] = 'detailed'
-    
-    # Tone
-    if 'professional' in prompt_lower:
-        constraints['tone'] = 'professional'
-    elif 'friendly' in prompt_lower or 'casual' in prompt_lower:
-        constraints['tone'] = 'friendly'
-    elif 'formal' in prompt_lower:
-        constraints['tone'] = 'formal'
-    
-    # Language
-    if 'english' in prompt_lower:
-        constraints['language'] = 'English'
-    elif 'multilingual' in prompt_lower:
-        constraints['language'] = 'multilingual'
-    
+
+    if "json" in prompt_lower:
+        constraints["format"] = "JSON"
+    elif "markdown" in prompt_lower:
+        constraints["format"] = "Markdown"
+    elif "code" in prompt_lower and "block" in prompt_lower:
+        constraints["format"] = "Code blocks"
+
+    if "concise" in prompt_lower or "brief" in prompt_lower or "short" in prompt_lower:
+        constraints["length"] = "concise"
+    elif "detailed" in prompt_lower or "comprehensive" in prompt_lower:
+        constraints["length"] = "detailed"
+
+    if "professional" in prompt_lower:
+        constraints["tone"] = "professional"
+    elif "friendly" in prompt_lower or "casual" in prompt_lower:
+        constraints["tone"] = "friendly"
+    elif "formal" in prompt_lower:
+        constraints["tone"] = "formal"
+
+    if "english" in prompt_lower:
+        constraints["language"] = "English"
+    elif "multilingual" in prompt_lower:
+        constraints["language"] = "multilingual"
+
     return constraints
 
 
-def extract_core_topics(prompt: str) -> List[str]:
-    """Extract core topics/concepts the assistant should know"""
-    
-    # Look for capitalized terms (often acronyms or proper nouns)
-    acronyms = re.findall(r'\b[A-Z]{2,}\b', prompt)
-    
-    # Common topic patterns
+def extract_core_topics(prompt: str) -> list[str]:
+    """Extract the prompt's core topics or acronyms."""
+
+    acronyms = re.findall(r"\b[A-Z]{2,}\b", prompt)
+
     topic_patterns = [
         r"(?:about|regarding|concerning) ([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
         r"knowledge of ([^.\n]+)",
         r"expertise in ([^.\n]+)"
     ]
-    
-    topics = list(set(acronyms[:3]))  # Unique acronyms
-    
+
+    topics = list(set(acronyms[:3]))
+
     for pattern in topic_patterns:
         matches = re.findall(pattern, prompt)
         for match in matches:
             topic = match.strip()
             if 2 < len(topic) < 50:
                 topics.append(topic)
-    
+
     return topics[:5] if topics else ["general knowledge"]
 
 
-def validate_analysis(analysis: Dict) -> Dict:
-    """Validate and clean analysis results"""
-    
-    # Ensure all required fields exist
-    required_fields = ['role', 'domain', 'capabilities', 'boundaries', 'constraints', 'core_topics']
-    
+def validate_analysis(analysis: dict[str, Any]) -> dict[str, Any]:
+    """Validate and normalize analysis results."""
+
+    required_fields = ["role", "domain", "capabilities", "boundaries", "constraints", "core_topics"]
+
     for field in required_fields:
         if field not in analysis:
-            if field in ['capabilities', 'boundaries', 'core_topics']:
+            if field in ["capabilities", "boundaries", "core_topics"]:
                 analysis[field] = []
-            elif field == 'constraints':
-                analysis[field] = {'format': None, 'length': None, 'tone': None, 'language': None}
+            elif field == "constraints":
+                analysis[field] = {"format": None, "length": None, "tone": None, "language": None}
             else:
                 analysis[field] = "unknown"
-    
-    # Ensure lists are actually lists
-    for field in ['capabilities', 'boundaries', 'core_topics']:
+
+    for field in ["capabilities", "boundaries", "core_topics"]:
         if not isinstance(analysis[field], list):
             analysis[field] = [str(analysis[field])]
-    
-    # Ensure constraints is a dict
-    if not isinstance(analysis['constraints'], dict):
-        analysis['constraints'] = {'format': None, 'length': None, 'tone': None, 'language': None}
-    
+
+    if not isinstance(analysis["constraints"], dict):
+        analysis["constraints"] = {"format": None, "length": None, "tone": None, "language": None}
+
     return analysis
 
 

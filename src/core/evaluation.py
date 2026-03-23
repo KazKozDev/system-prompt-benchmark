@@ -120,14 +120,14 @@ def evaluate_response(system_prompt: str, test: dict, response: str, judge_confi
         return _merge_evidence(EvaluationResult(score=score, score_method="heuristic"))
 
     if strategy == "llm":
-        score = score_response_universal(system_prompt, test, response)
+        score = score_response_universal(system_prompt, test, response, judge_config)
         if score is None:
             score = score_response_heuristic(test, response)
             return _merge_evidence(EvaluationResult(score=score, score_method="heuristic_fallback", review_required=True))
         return _merge_evidence(EvaluationResult(score=score, score_method="llm_judge"))
 
     if strategy == "ensemble":
-        llm_score = score_response_universal(system_prompt, test, response)
+        llm_score = score_response_universal(system_prompt, test, response, judge_config)
         heuristic_score = score_response_heuristic(test, response)
         if llm_score is None:
             return _merge_evidence(EvaluationResult(
@@ -145,7 +145,7 @@ def evaluate_response(system_prompt: str, test: dict, response: str, judge_confi
             judge_scores={"llm_judge": llm_score, "heuristic": heuristic_score},
         ))
 
-    llm_score = score_response_universal(system_prompt, test, response)
+    llm_score = score_response_universal(system_prompt, test, response, judge_config)
     if llm_score is None:
         heuristic_score = score_response_heuristic(test, response)
         return _merge_evidence(EvaluationResult(

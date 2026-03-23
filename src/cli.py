@@ -109,6 +109,27 @@ def _merge_run_args(args) -> BenchmarkConfig:
     config.provider = provider
     if args.judge_strategy:
         config.judge.strategy = args.judge_strategy
+    judge_provider = ProviderConfig(**config.judge.provider.__dict__)
+    if args.judge_provider:
+        judge_provider.name = args.judge_provider
+    if args.judge_model:
+        judge_provider.model = args.judge_model
+        config.judge.ollama_model = args.judge_model
+    if args.judge_api_key:
+        judge_provider.api_key = args.judge_api_key
+    if args.judge_api_key_env:
+        judge_provider.api_key_env = args.judge_api_key_env
+    if args.judge_base_url:
+        judge_provider.base_url = args.judge_base_url
+    if args.judge_api_version:
+        judge_provider.api_version = args.judge_api_version
+    if args.judge_aws_region:
+        judge_provider.aws_region = args.judge_aws_region
+    if args.judge_project_id:
+        judge_provider.project_id = args.judge_project_id
+    if args.judge_location:
+        judge_provider.location = args.judge_location
+    config.judge.provider = judge_provider
     if args.pass_threshold is not None:
         config.judge.pass_threshold = args.pass_threshold
     if args.review_threshold is not None:
@@ -661,6 +682,24 @@ def build_parser():
     run_parser.add_argument("--temperature", type=float, help="Sampling temperature")
     run_parser.add_argument("--max-tokens", type=int, help="Max output tokens")
     run_parser.add_argument("--judge-strategy", help="Evaluation strategy: auto, llm, heuristic, ensemble, or plugin:<name>")
+    run_parser.add_argument(
+        "--judge-provider",
+        help=f"Judge provider name. Built-ins: {', '.join(SUPPORTED_PROVIDERS)}",
+    )
+    run_parser.add_argument("--judge-model", help="Judge model override")
+    run_parser.add_argument("--judge-api-key", help="Judge API key override")
+    run_parser.add_argument(
+        "--judge-api-key-env",
+        help="Environment variable name to read the judge API key from",
+    )
+    run_parser.add_argument("--judge-base-url", help="Judge provider base URL override")
+    run_parser.add_argument(
+        "--judge-api-version",
+        help="Judge provider API version override",
+    )
+    run_parser.add_argument("--judge-aws-region", help="AWS region for Bedrock judge")
+    run_parser.add_argument("--judge-project-id", help="Project ID for Vertex AI judge")
+    run_parser.add_argument("--judge-location", help="Location/region for Vertex AI judge")
     run_parser.add_argument("--pass-threshold", type=float, help="Score threshold for PASS labeling")
     run_parser.add_argument("--review-threshold", type=float, help="Score threshold for REVIEW labeling")
     run_parser.add_argument("--attacker-model", help="Ollama model used for llm_adaptive attacker generation")
