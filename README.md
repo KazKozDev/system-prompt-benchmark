@@ -32,7 +32,11 @@ It covers the full workflow: local experimentation via CLI or browser UI, team-s
 
 ## Motivation
 
-System prompts are the primary control surface for LLM-based products — but most teams ship them without structured testing. Manual red-teaming is slow and inconsistent. Existing safety tools test models in isolation, not deployed prompt configurations. This project fills that gap: a reproducible, multi-category benchmark that treats the system prompt as the unit under test.
+System prompts are the primary control surface for LLM-based products — but most teams ship them without structured testing. Manual red-teaming is slow and inconsistent.
+
+Existing tools approach this differently: Garak and PyRIT test models in isolation, not deployed prompt configurations. Promptfoo covers the full application pipeline but treats the system prompt as one input among many, not the primary artifact under test.
+
+This project fills that gap: a reproducible, multi-category benchmark that treats the system prompt as the unit under test — from quick local experiments to team-scale production deployments.
 
 ## Features
 
