@@ -16,7 +16,7 @@ def test_benchmark_preset_round_trip_and_delete(monkeypatch, tmp_path: Path):
         "version": 1,
         "prompt": {"system_prompt": "You are safe.", "source": "Paste Text"},
         "provider_preset": {
-            "auth_mode": "Environment Variable",
+            "auth_mode": "Use Environment Variable",
             "provider": {"name": "ollama", "model": "qwen3.5:9b"},
         },
         "benchmark": {"mode": "Quick (10 tests)", "num_tests": 10},
@@ -69,7 +69,7 @@ def test_benchmark_preset_round_trip_restores_run_ready_session(
     )
 
     fake_session[provider_views.PROVIDER_FIELD_KEYS["auth_mode"]] = (
-        "Environment Variable"
+        "Use Environment Variable"
     )
 
     payload = benchmark_presets.build_benchmark_preset_payload(

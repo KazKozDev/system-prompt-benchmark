@@ -169,6 +169,9 @@ PROVIDER_SPECS = {
 
 PRESET_DIR = Path("config/providers")
 PROVIDER_TEST_SESSION_KEY = "provider_test_result"
+AUTH_MODE_ENV = "Use Environment Variable"
+AUTH_MODE_PASTE = "Paste API Key"
+LEGACY_AUTH_MODE_ENV = "Environment Variable"
 PROVIDER_MODEL_SELECT_KEY = "provider_model_select"
 PROVIDER_MODEL_MANUAL_KEY = "provider_model_manual"
 PROVIDER_EMBEDDING_MODEL_SELECT_KEY = "provider_embedding_model_select"
@@ -227,6 +230,9 @@ PROVIDER_FIELD_KEYS = {
 def render_provider_selector() -> tuple[ProviderConfig, dict]:
     _initialize_provider_state()
     provider_specs = _provider_specs_with_plugins()
+    st.session_state[PROVIDER_FIELD_KEYS["auth_mode"]] = _normalize_auth_mode(
+        st.session_state.get(PROVIDER_FIELD_KEYS["auth_mode"])
+    )
 
     provider_name = st.selectbox(
         "Provider",
@@ -253,11 +259,11 @@ def render_provider_selector() -> tuple[ProviderConfig, dict]:
     if spec.get("supports_api_key"):
         api_mode = st.radio(
             "How to provide the API key",
-            ["Use Environment Variable", "Paste API Key"],
+            [AUTH_MODE_ENV, AUTH_MODE_PASTE],
             horizontal=True,
             key=PROVIDER_FIELD_KEYS["auth_mode"],
         )
-        if api_mode == "Use Environment Variable":
+        if _normalize_auth_mode(api_mode) == AUTH_MODE_ENV:
             api_key_env = st.text_input(
                 "API key environment variable",
                 key=PROVIDER_FIELD_KEYS["api_key_env"],
@@ -352,7 +358,7 @@ def render_provider_selector() -> tuple[ProviderConfig, dict]:
         model_kind="chat",
         auth_mode=st.session_state.get(
             PROVIDER_FIELD_KEYS["auth_mode"],
-            "Environment Variable",
+            AUTH_MODE_ENV,
         ),
         api_key=api_key,
         api_key_env=api_key_env,
@@ -371,7 +377,7 @@ def render_provider_selector() -> tuple[ProviderConfig, dict]:
             model_kind="embedding",
             auth_mode=st.session_state.get(
                 PROVIDER_FIELD_KEYS["auth_mode"],
-                "Environment Variable",
+                AUTH_MODE_ENV,
             ),
             api_key=api_key,
             api_key_env=api_key_env,
@@ -388,7 +394,7 @@ def render_provider_selector() -> tuple[ProviderConfig, dict]:
             model_kind="rerank",
             auth_mode=st.session_state.get(
                 PROVIDER_FIELD_KEYS["auth_mode"],
-                "Environment Variable",
+                AUTH_MODE_ENV,
             ),
             api_key=api_key,
             api_key_env=api_key_env,
@@ -468,7 +474,7 @@ def delete_provider_preset(name: str) -> None:
 def _initialize_provider_state() -> None:
     defaults = {
         PROVIDER_FIELD_KEYS["provider_name"]: "ollama",
-        PROVIDER_FIELD_KEYS["auth_mode"]: "Environment Variable",
+        PROVIDER_FIELD_KEYS["auth_mode"]: AUTH_MODE_ENV,
         PROVIDER_FIELD_KEYS["model"]: PROVIDER_SPECS["ollama"]["default_model"],
         PROVIDER_FIELD_KEYS["embedding_model"]: PROVIDER_SPECS["ollama"].get(
             "default_embedding_model",
@@ -514,6 +520,9 @@ def _initialize_provider_state() -> None:
     }
     for key, value in defaults.items():
         st.session_state.setdefault(key, value)
+    st.session_state[PROVIDER_FIELD_KEYS["auth_mode"]] = _normalize_auth_mode(
+        st.session_state.get(PROVIDER_FIELD_KEYS["auth_mode"])
+    )
 
 
 def _apply_preset_to_session(preset: dict) -> None:
@@ -534,7 +543,9 @@ def _apply_preset_to_session(preset: dict) -> None:
         else spec.get("default_rerank_model", "")
     )
     st.session_state[PROVIDER_FIELD_KEYS["provider_name"]] = provider_name
-    st.session_state[PROVIDER_FIELD_KEYS["auth_mode"]] = preset.get("auth_mode", "Environment Variable")
+    st.session_state[PROVIDER_FIELD_KEYS["auth_mode"]] = _normalize_auth_mode(
+        preset.get("auth_mode", AUTH_MODE_ENV)
+    )
     st.session_state[PROVIDER_FIELD_KEYS["model"]] = (
         provider_data.get("model") or default_chat_model
     )
@@ -884,12 +895,20 @@ def _resolve_provider_api_key(
     api_key: str | None,
     api_key_env: str | None,
 ) -> str | None:
-    if auth_mode == "Paste API Key":
+    if _normalize_auth_mode(auth_mode) == AUTH_MODE_PASTE:
         return api_key or None
     env_name = api_key_env or spec.get("default_api_key_env")
     if not env_name:
         return None
     return os.getenv(env_name)
+
+
+def _normalize_auth_mode(auth_mode: str | None) -> str:
+    if auth_mode == LEGACY_AUTH_MODE_ENV:
+        return AUTH_MODE_ENV
+    if auth_mode == AUTH_MODE_PASTE:
+        return AUTH_MODE_PASTE
+    return AUTH_MODE_ENV
 
 
 def _fetch_provider_model_options(
@@ -1236,7 +1255,12 @@ def _render_provider_test_panel(provider_config: ProviderConfig, capabilities: d
                         **asdict(provider_config),
                         "api_key": None,
                     },
-                    "auth_mode": st.session_state.get(PROVIDER_FIELD_KEYS["auth_mode"], "Environment Variable"),
+                    "auth_mode": _normalize_auth_mode(
+                        st.session_state.get(
+                            PROVIDER_FIELD_KEYS["auth_mode"],
+                            AUTH_MODE_ENV,
+                        )
+                    ),
                     "system_prompt": system_prompt,
                     "user_message": user_message,
                     "response": response_text,
@@ -1278,11 +1302,10 @@ def _sync_provider_test_result(provider_config: ProviderConfig) -> None:
     saved_config = test_result.get("provider_config") or {}
     current_config = _serialize_provider_config(provider_config)
     saved_auth_mode = test_result.get("auth_mode")
-    current_auth_mode = st.session_state.get(
-        PROVIDER_FIELD_KEYS["auth_mode"],
-        "Environment Variable",
+    current_auth_mode = _normalize_auth_mode(
+        st.session_state.get(PROVIDER_FIELD_KEYS["auth_mode"], AUTH_MODE_ENV)
     )
-    if saved_config != current_config or saved_auth_mode != current_auth_mode:
+    if saved_config != current_config or _normalize_auth_mode(saved_auth_mode) != current_auth_mode:
         st.session_state.pop(PROVIDER_TEST_SESSION_KEY, None)
 
 

@@ -217,6 +217,22 @@ def test_on_provider_change_resets_provider_specific_defaults(
     assert fake_st.session_state[provider_views.PROVIDER_FIELD_KEYS["base_url"]] == "https://api.openai.com/v1"
 
 
+def test_initialize_provider_state_normalizes_legacy_auth_mode(monkeypatch) -> None:
+    from src.ui import provider_views
+
+    fake_st = SimpleNamespace(
+        session_state={provider_views.PROVIDER_FIELD_KEYS["auth_mode"]: "Environment Variable"}
+    )
+    monkeypatch.setattr(provider_views, "st", fake_st)
+
+    provider_views._initialize_provider_state()
+
+    assert (
+        fake_st.session_state[provider_views.PROVIDER_FIELD_KEYS["auth_mode"]]
+        == "Use Environment Variable"
+    )
+
+
 def test_get_provider_model_options_uses_cache(monkeypatch) -> None:
     from src.ui import provider_views
 
@@ -256,6 +272,48 @@ def test_get_provider_model_options_uses_cache(monkeypatch) -> None:
     assert first == ([{"value": "gpt-4o", "label": "gpt-4o"}], None)
     assert second == first
     assert calls["count"] == 1
+
+
+def test_get_provider_model_options_normalizes_legacy_env_auth_mode(
+    monkeypatch,
+) -> None:
+    from src.ui import provider_views
+
+    fake_st = SimpleNamespace(
+        session_state={provider_views.PROVIDER_MODEL_CACHE_KEY: {}}
+    )
+    monkeypatch.setattr(provider_views, "st", fake_st)
+    monkeypatch.setattr(provider_views.os, "getenv", lambda name: None)
+
+    calls: list[str | None] = []
+
+    def _fake_fetch_provider_model_options(**kwargs):
+        calls.append(kwargs["api_key"])
+        return [{"value": "gpt-4o", "label": "gpt-4o"}]
+
+    monkeypatch.setattr(
+        provider_views,
+        "_fetch_provider_model_options",
+        _fake_fetch_provider_model_options,
+    )
+
+    options, error = provider_views._get_provider_model_options(
+        provider_name="openai",
+        spec=provider_views.PROVIDER_SPECS["openai"],
+        model_kind="chat",
+        auth_mode="Environment Variable",
+        api_key="pasted-secret",
+        api_key_env=None,
+        base_url="https://api.openai.com/v1",
+        api_version=None,
+        aws_region=None,
+        project_id=None,
+        location=None,
+    )
+
+    assert error is None
+    assert options == [{"value": "gpt-4o", "label": "gpt-4o"}]
+    assert calls == [None]
 
 
 def test_fetch_cohere_models_filters_embedding_and_rerank(monkeypatch) -> None:
@@ -353,6 +411,30 @@ def test_get_model_discovery_placeholder_requires_api_key() -> None:
         model_kind="chat",
         auth_mode="Paste API Key",
         api_key=None,
+        api_key_env=None,
+        base_url="https://api.openai.com/v1",
+        api_version=None,
+        aws_region=None,
+        project_id=None,
+        location=None,
+        fetch_error=None,
+    )
+
+    assert placeholder == "Add API key to load models"
+
+
+def test_get_model_discovery_placeholder_treats_legacy_env_auth_mode_as_env(
+    monkeypatch,
+) -> None:
+    from src.ui import provider_views
+
+    monkeypatch.setattr(provider_views.os, "getenv", lambda name: None)
+    placeholder = provider_views._get_model_discovery_placeholder(
+        provider_name="openai",
+        spec=provider_views.PROVIDER_SPECS["openai"],
+        model_kind="chat",
+        auth_mode="Environment Variable",
+        api_key="pasted-secret",
         api_key_env=None,
         base_url="https://api.openai.com/v1",
         api_version=None,

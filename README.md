@@ -24,6 +24,8 @@
 
 ![Demo](assets/demo.gif)
 
+Sample benchmark output: [`customer-support-bot_ollama_300-tests.json`](examples/benchmark-output/customer-support-bot_ollama_300-tests.json)
+
 ## Overview
 
 `system-prompt-benchmark` evaluates how well an LLM system prompt holds up under adversarial conditions. You point it at a prompt file, pick a provider, and it runs a dataset of attack scenarios through the model — then scores each response across 12 behavioral categories.

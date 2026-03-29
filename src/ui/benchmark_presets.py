@@ -175,7 +175,7 @@ def build_benchmark_preset_payload(
         "provider_preset": {
             "auth_mode": st.session_state.get(
                 PROVIDER_FIELD_KEYS["auth_mode"],
-                "Environment Variable",
+                provider_views.AUTH_MODE_ENV,
             ),
             "provider": {
                 **asdict(provider_config),
