@@ -24,7 +24,7 @@
 
 ![Demo](assets/demo.gif)
 
-Sample benchmark output: [`customer-support-bot_ollama_300-tests.json`](examples/benchmark-output/customer-support-bot_ollama_300-tests.json)
+Sample benchmark report: [`customer-support-bot_ollama_300-tests.pdf`](examples/benchmark-output/customer-support-bot_ollama_300-tests.pdf)
 
 ## Overview
 
