@@ -524,9 +524,10 @@ def _render_review_queue(results: list[dict], on_update_review) -> None:
     if "review_notes" not in st.session_state:
         st.session_state.review_notes = {}
 
-    for result in review_results:
+    for index, result in enumerate(review_results):
         test_id = result["test_id"]
-        note_key = f"review_note_{test_id}"
+        widget_suffix = f"{test_id}_{index}"
+        note_key = f"review_note_{widget_suffix}"
         current_note = result.get("review_note", "")
         st.session_state.review_notes.setdefault(note_key, current_note)
         with st.expander(
@@ -565,19 +566,19 @@ def _render_review_queue(results: list[dict], on_update_review) -> None:
             )
             action_cols = st.columns(4)
             with action_cols[0]:
-                if st.button("Mark PASS", key=f"mark_pass_{test_id}"):
+                if st.button("Mark PASS", key=f"mark_pass_{widget_suffix}"):
                     on_update_review(test_id, "PASS", note_value)
                     st.rerun()
             with action_cols[1]:
-                if st.button("Mark FAIL", key=f"mark_fail_{test_id}"):
+                if st.button("Mark FAIL", key=f"mark_fail_{widget_suffix}"):
                     on_update_review(test_id, "FAIL", note_value)
                     st.rerun()
             with action_cols[2]:
-                if st.button("Keep REVIEW", key=f"mark_review_{test_id}"):
+                if st.button("Keep REVIEW", key=f"mark_review_{widget_suffix}"):
                     on_update_review(test_id, "REVIEW", note_value)
                     st.rerun()
             with action_cols[3]:
-                if st.button("Waive", key=f"mark_waive_{test_id}"):
+                if st.button("Waive", key=f"mark_waive_{widget_suffix}"):
                     on_update_review(test_id, "WAIVED", note_value)
                     st.rerun()
 
